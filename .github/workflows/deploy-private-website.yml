@@ -1,4 +1,4 @@
-name: Deploy to playground.wordpress.net
+name: Deploy private Playground web app
 
 on:
     workflow_dispatch:
@@ -37,14 +37,6 @@ jobs:
                   submodules: true
             - uses: ./.github/actions/prepare-playground
             - run: npm run build
-            - run: tar -czf wasm-wordpress-net.tar.gz dist/packages/playground/wasm-wordpress-net
-            # Store dist/packages/artifacts/wasm-wordpress-net as a build artifact
-            - uses: actions/upload-artifact@v4
-              with:
-                  name: playground-website
-                  path: wasm-wordpress-net.tar.gz
-            # The artifact only becomes available after this workflow wraps up, so let's wrap.
-            # This artifact enables the download of a pre-built package and hosting of one's own playground instance.
 
             - name: Deploy to playground.wordpress.net
               shell: bash
@@ -69,12 +61,12 @@ jobs:
                     packages/php-wasm/universal/src/lib/mime-types.json \
                     ${{ secrets.DEPLOY_WEBSITE_TARGET_USER }}@${{ secrets.DEPLOY_WEBSITE_TARGET_HOST }}:'~/website-deployment/'
 
-                  # Require A8C proxy for private web app
-                  ssh -i ~/.ssh/id_ed25519 \
-                    ${{ secrets.DEPLOY_WEBSITE_TARGET_USER }}@${{ secrets.DEPLOY_WEBSITE_TARGET_HOST }} \
-                    -tt -C 'echo "if ( \"cli\" !== php_sapi_name() && empty( \$_SERVER[\"A8C_PROXIED_REQUEST\"] ) ) { http_response_code( 401 ); echo \"Unauthorized. Please proxy.\"; die(); }" >> ~/website-deployment/custom-redirects.php'
-
                   # Apply update
                   ssh -i ~/.ssh/id_ed25519 \
                     ${{ secrets.DEPLOY_WEBSITE_TARGET_USER }}@${{ secrets.DEPLOY_WEBSITE_TARGET_HOST }} \
-                    -tt -C '~/website-deployment/apply-update.sh'
+                    -tt '~/website-deployment/apply-update.sh'
+
+                  # Require A8C proxy for private web app
+                  ssh -i ~/.ssh/id_ed25519 \
+                    ${{ secrets.DEPLOY_WEBSITE_TARGET_USER }}@${{ secrets.DEPLOY_WEBSITE_TARGET_HOST }} \
+                    -tt 'sed -i "2i if ( \"cli\" !== php_sapi_name() && empty( \$_SERVER[\"A8C_PROXIED_REQUEST\"] ) ) { http_response_code( 401 ); echo \"Unauthorized. Please proxy.\"; die(); }" ~/htdocs/custom-redirects.php'
