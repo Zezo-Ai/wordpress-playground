@@ -4,32 +4,37 @@ All notable changes to this project are documented in this file by a CI job
 that runs on every NPM release. The file follows the [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 format.
 
-## [v1.0.21] (2025-01-13) 
+## [v1.0.24] (2025-02-03)
+
+## [v1.0.23] (2025-01-27)
+
+## [v1.0.22] (2025-01-20)
+
+## [v1.0.21] (2025-01-13)
 
 ### Enhancements
 
-- [Data Liberation] Add EPub to Blocks converter. ([#2097](https://github.com/WordPress/wordpress-playground/pull/2097))
-- [Data Liberation] Block markup consumers and producers. ([#2121](https://github.com/WordPress/wordpress-playground/pull/2121))
-- [Data Liberation] Filesystem entity reader. ([#2125](https://github.com/WordPress/wordpress-playground/pull/2125))
-- [Data Liberation] Recognize self-closing blocks in WP_Block_Markup_Processor. ([#2120](https://github.com/WordPress/wordpress-playground/pull/2120))
-- [Data Liberation] Refactor Entity Readers class diagram. ([#2096](https://github.com/WordPress/wordpress-playground/pull/2096))
+-   [Data Liberation] Add EPub to Blocks converter. ([#2097](https://github.com/WordPress/wordpress-playground/pull/2097))
+-   [Data Liberation] Block markup consumers and producers. ([#2121](https://github.com/WordPress/wordpress-playground/pull/2121))
+-   [Data Liberation] Filesystem entity reader. ([#2125](https://github.com/WordPress/wordpress-playground/pull/2125))
+-   [Data Liberation] Recognize self-closing blocks in WP_Block_Markup_Processor. ([#2120](https://github.com/WordPress/wordpress-playground/pull/2120))
+-   [Data Liberation] Refactor Entity Readers class diagram. ([#2096](https://github.com/WordPress/wordpress-playground/pull/2096))
 
 ### PHP WebAssembly
 
-- PHP 8.4 support. ([#2038](https://github.com/WordPress/wordpress-playground/pull/2038))
-- Rewrote fileToUint8Array function to be also NodeJS/Deno compatible. ([#2117](https://github.com/WordPress/wordpress-playground/pull/2117))
-- [PHP] Restore /internal files and Filesystem mounts after hotswapPhpRuntime is called. ([#2119](https://github.com/WordPress/wordpress-playground/pull/2119))
+-   PHP 8.4 support. ([#2038](https://github.com/WordPress/wordpress-playground/pull/2038))
+-   Rewrote fileToUint8Array function to be also NodeJS/Deno compatible. ([#2117](https://github.com/WordPress/wordpress-playground/pull/2117))
+-   [PHP] Restore /internal files and Filesystem mounts after hotswapPhpRuntime is called. ([#2119](https://github.com/WordPress/wordpress-playground/pull/2119))
 
 ### Bug Fixes
 
-- [CORS Proxy] Support chunked encoding when running in Apache/Nginx/etc. ([#2114](https://github.com/WordPress/wordpress-playground/pull/2114))
+-   [CORS Proxy] Support chunked encoding when running in Apache/Nginx/etc. ([#2114](https://github.com/WordPress/wordpress-playground/pull/2114))
 
 ### Contributors
 
 The following contributors merged PRs in this release:
 
 @adamziel @mbuella
-
 
 ## [v1.0.20] (2025-01-06)
 
