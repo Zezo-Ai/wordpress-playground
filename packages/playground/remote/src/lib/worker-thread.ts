@@ -240,7 +240,7 @@ export class PlaygroundWorkerEndpoint extends PHPWorker {
 			const endpoint = this;
 			const knownRemoteAssetPaths = new Set<string>();
 			const phpIniEntries: Record<string, string> = {
-				'openssl.cafile': '/internal/ca-bundle.crt',
+				'openssl.cafile': '/internal/shared/ca-bundle.crt',
 			};
 			let CAroot: false | GeneratedCertificate = false;
 			let tcpOverFetch: TCPOverFetchOptions | undefined = undefined;
@@ -345,7 +345,7 @@ export class PlaygroundWorkerEndpoint extends PHPWorker {
 				},
 				phpIniEntries,
 				createFiles: {
-					'/internal/ca-bundle.crt': CAroot
+					'/internal/shared/ca-bundle.crt': CAroot
 						? certificateToPEM(CAroot.certificate)
 						: '',
 					'/internal/shared/mu-plugins': {

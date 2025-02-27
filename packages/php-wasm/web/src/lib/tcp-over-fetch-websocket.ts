@@ -43,6 +43,7 @@ import { generateCertificate, GeneratedCertificate } from './tls/certificates';
 import { concatUint8Arrays } from './tls/utils';
 import { ContentTypes } from './tls/1_2/types';
 import { fetchWithCorsProxy } from './fetch-with-cors-proxy';
+import { ChunkedDecoderStream } from './chunked-decoder';
 
 export type TCPOverFetchOptions = {
 	CAroot: GeneratedCertificate;
@@ -417,7 +418,7 @@ function guessProtocol(port: number, data: Uint8Array) {
 	return 'other';
 }
 
-class RawBytesFetch {
+export class RawBytesFetch {
 	/**
 	 * Streams a HTTP response including the status line and headers.
 	 */
@@ -578,6 +579,14 @@ class RawBytesFetch {
 
 		const headersBuffer = inputBuffer.slice(0, headersEndIndex);
 		const parsedHeaders = RawBytesFetch.parseRequestHeaders(headersBuffer);
+		const terminationMode =
+			parsedHeaders.headers.get('Transfer-Encoding') !== null
+				? 'chunked'
+				: 'content-length';
+		const contentLength =
+			parsedHeaders.headers.get('Content-Length') !== null
+				? parseInt(parsedHeaders.headers.get('Content-Length')!, 10)
+				: undefined;
 
 		const bodyBytes = inputBuffer.slice(
 			headersEndIndex + 4 /* Skip \r\n\r\n */
@@ -585,6 +594,9 @@ class RawBytesFetch {
 		let outboundBodyStream: ReadableStream<Uint8Array> | undefined;
 		if (parsedHeaders.method !== 'GET') {
 			const requestBytesReader = requestBytesStream.getReader();
+			let seenBytes = bodyBytes.length;
+			let last5Bytes = bodyBytes.slice(-6);
+			const emptyChunk = new TextEncoder().encode('0\r\n\r\n');
 			outboundBodyStream = new ReadableStream<Uint8Array>({
 				async start(controller) {
 					if (bodyBytes.length > 0) {
@@ -596,16 +608,47 @@ class RawBytesFetch {
 				},
 				async pull(controller) {
 					const { done, value } = await requestBytesReader.read();
-
+					seenBytes += value?.length || 0;
 					if (value) {
 						controller.enqueue(value);
+						last5Bytes = concatUint8Arrays([
+							last5Bytes,
+							value || new Uint8Array(),
+						]).slice(-5);
 					}
-					if (done) {
+					const shouldTerminate =
+						done ||
+						(terminationMode === 'content-length' &&
+							contentLength !== undefined &&
+							seenBytes >= contentLength) ||
+						(terminationMode === 'chunked' &&
+							last5Bytes.every(
+								(byte, index) => byte === emptyChunk[index]
+							));
+					if (shouldTerminate) {
 						controller.close();
 						return;
 					}
 				},
 			});
+
+			if (terminationMode === 'chunked') {
+				// Strip chunked transfer encoding from the request body stream.
+				// PHP may encode the request body with chunked transfer encoding,
+				// giving us a stream of chunks with a size line ending in \r\n,
+				// a body chunk, and a chunk trailer ending in \r\n.
+				//
+				// We must not include the chunk headers and trailers in the
+				// transmitted data. fetch() trusts us to provide the body stream
+				// in its original form and will pass treat the chunked encoding
+				// artifacts as a part of the data to be transmitted to the server.
+				// This, in turn, means sending over a corrupted request body.
+				//
+				// Therefore, let's just strip any chunked encoding-related bytes.
+				outboundBodyStream = outboundBodyStream.pipeThrough(
+					new ChunkedDecoderStream()
+				);
+			}
 		}
 
 		/**
