@@ -128,15 +128,6 @@ test('should preserve PHP constants when saving a temporary site to OPFS', async
 });
 
 SupportedPHPVersions.forEach(async (version) => {
-	/**
-	 * WordPress 6.6 dropped support for PHP 7.0 and 7.1 and won't load on these versions.
-	 * Therefore, we're skipping the test for these versions.
-	 * @see https://make.wordpress.org/core/2024/04/08/dropping-support-for-php-7-1/
-	 */
-	if (['7.0', '7.1'].includes(version)) {
-		return;
-	}
-
 	test(`should switch PHP version to ${version}`, async ({ website }) => {
 		await website.goto(`./`);
 		await website.ensureSiteManagerIsOpen();

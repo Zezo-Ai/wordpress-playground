@@ -343,6 +343,31 @@ CURL_LIBS="-I/root/lib/lib -L/root/lib/lib" \
 # @TODO: Identify the root cause behind these errors and fix them properly
 RUN echo '#define ZEND_MM_ERROR 0' >> /root/php-src/main/php_config.h;
 
+# 64 bit long support {{{
+# PHP uses custom typedefs for 64 bit integers in many places, e.g.
+# timelib_long is int64_t when __x86_64__ is defined and int32_t otherwise.
+#
+# We're defining __x86_64__ in all emcc calls in this project, which
+# works well, but also has some side effects in the PHP codebase.
+#
+# Specifically, PHP has a lot of inlined asm for 64bit processors that is used
+# when __x86_64__ is defined. Inline asm won't build to WebAssembly so we need to
+# disable every instance of inlined asm.
+RUN echo '#undef HAVE_ASM_GOTO' >> /root/php-src/main/php_config.h;
+RUN echo '#define HAVE_ASM_GOTO 0' >> /root/php-src/main/php_config.h;
+# Disable asm arithmetic.
+RUN if [[ ("${PHP_VERSION:0:1}" -ge "7" && "${PHP_VERSION:2:1}" -ge "4") || "${PHP_VERSION:0:1}" -ge "8" ]]; then \
+		/root/replace.sh 's/ZEND_USE_ASM_ARITHMETIC 1/ZEND_USE_ASM_ARITHMETIC 0/g' /root/php-src/Zend/zend_operators.h; \
+	elif [[ "${PHP_VERSION:0:1}" -eq "7" && "${PHP_VERSION:2:1}" -eq "3" ]]; then \
+		/root/replace.sh 's/defined\(HAVE_ASM_GOTO\)/0/g' /root/php-src/Zend/zend_operators.h; \
+	elif [[ "${PHP_VERSION:0:1}" -eq "7" && "${PHP_VERSION:2:1}" -le "1" ]]; then \
+		/root/replace.sh 's/defined\(__GNUC__\)/0/g' /root/php-src/Zend/zend_operators.h; \
+	fi;
+RUN /root/replace.sh 's/defined\(__GNUC__\)/0/g' /root/php-src/Zend/zend_multiply.h
+RUN /root/replace.sh 's/defined\(__GNUC__\)/0/g' /root/php-src/Zend/zend_cpuinfo.c
+RUN /root/replace.sh 's/defined\(__clang__\)/0/g' /root/php-src/Zend/zend_cpuinfo.c
+# }}}
+
 # With HAVE_UNISTD_H=1 PHP complains about the missing getdtablesize() function
 RUN /root/replace.sh 's/define php_sleep sleep/define php_sleep wasm_sleep/g' /root/php-src/main/php.h
 RUN echo 'extern unsigned int wasm_sleep(unsigned int time);' >> /root/php-src/main/php.h;
@@ -386,7 +411,7 @@ RUN echo '' > /root/php-src/ext/standard/proc_open.c;
 RUN source /root/emsdk/emsdk_env.sh && \
 	# We're compiling PHP as emscripten's side module...
 	export JSPI_FLAGS=$(if [ "$WITH_JSPI" = "yes" ]; then echo "-sSUPPORT_LONGJMP=wasm -fwasm-exceptions"; else echo ""; fi) && \
-	EMCC_FLAGS=" -sSIDE_MODULE -Dsetsockopt=wasm_setsockopt -Dphp_exec=wasm_php_exec $JSPI_FLAGS " \
+	EMCC_FLAGS=" -D__x86_64__ -sSIDE_MODULE -Dsetsockopt=wasm_setsockopt -Dphp_exec=wasm_php_exec $JSPI_FLAGS " \
 	# ...which means we must skip all the libraries - they will be provided in the final linking step.
 	EMCC_SKIP="-lz -ledit -ldl -lncurses -lzip -lpng16 -lssl -lcrypto -lxml2 -lc -lm -lsqlite3 /root/lib/lib/libxml2.a /root/lib/lib/libsqlite3.so /root/lib/lib/libsqlite3.a /root/lib/lib/libsqlite3.a /root/lib/lib/libpng16.so /root/lib/lib/libwebp.a /root/lib/lib/libjpeg.a" \
 	emmake make -j1
@@ -404,7 +429,6 @@ RUN if [[ "${PHP_VERSION:0:1}" -le "7" && "${PHP_VERSION:2:1}" -le "3" ]]; then 
 		 cp /root/proc_open7.4.c /root/proc_open.c; \
 		 cp /root/proc_open7.4.h /root/proc_open.h; \
 	fi
-
 
 ARG WITH_SOURCEMAPS
 ARG OUTPUT_DIR_FOR_SOURCE_MAP_BASE
@@ -1015,10 +1039,12 @@ RUN set -euxo pipefail; \
 	-I TSRM/ \
 	-I /root/lib/include \
 	-L/root/lib -L/root/lib/lib/ \
+	-D__x86_64__\
 	-lproxyfs.js \
 	$ASYNCIFY_FLAGS \
 	$(cat /root/.emcc-php-wasm-flags) \
 	-s EXPORTED_FUNCTIONS="$EXPORTED_FUNCTIONS" \
+	-s WASM_BIGINT=1 \
 	-s INITIAL_MEMORY=1024MB \
 	-s ALLOW_MEMORY_GROWTH=1         \
 	-s ASSERTIONS=0                  \

@@ -79,7 +79,7 @@ RUN chmod a+x /root/replace-across-lines.sh
 # * Enables adding -sSIDE_MODULE when running emcc
 #
 # Usage:
-#  EMCC_SKIP="-lz -lxml2" EMCC_FLAGS="-sSIDE_MODULE" emmake make
+#  EMCC_SKIP="-lz -lxml2" EMCC_FLAGS=" -D__x86_64__ -sSIDE_MODULE" emmake make
 #               ↑                            ↑
 #    ┌──────────┴─────────────┐   ┌──────────┴─────────────┐
 #    │  skip those flags when │   │  add these flags when  │

@@ -361,7 +361,7 @@ describe.each(SupportedPHPVersions)('PHP %s', (phpVersion) => {
 		});
 
 		// This test fails on older PHP versions
-		if (!['7.0', '7.1', '7.2', '7.3'].includes(phpVersion)) {
+		if (!['7.2', '7.3'].includes(phpVersion)) {
 			it('cat: stdin=pipe, stdout=file, stderr=file, file_get_contents', async () => {
 				const result = await php.run({
 					code: `<?php
@@ -676,7 +676,7 @@ describe.each(SupportedPHPVersions)('PHP %s', (phpVersion) => {
 		});
 
 		// This test fails on older PHP versions
-		if (!['7.0', '7.1', '7.2', '7.3'].includes(phpVersion)) {
+		if (!['7.2', '7.3'].includes(phpVersion)) {
 			it('Gives access to command and arguments when array type is used in proc_open', async () => {
 				let command = '';
 				let args: string[] = [];
@@ -1895,15 +1895,90 @@ bar1
 					mb_regex_encoding('UTF-8');
 				?>`,
 			});
-			// We don't support mbregex in PHP 7.0
-			if (phpVersion === '7.0') {
-				await expect(promise).rejects.toThrow(
-					'Call to undefined function mb_regex_encoding'
-				);
-			} else {
-				const response = await promise;
-				expect(response.errors).toBe('');
-			}
+			const response = await promise;
+			expect(response.errors).toBe('');
+		});
+	});
+
+	describe('64 bit integer support', () => {
+		it('Should be able to use 64 bit integers', async () => {
+			const response = await php.run({
+				code: `<?php echo json_encode(9223372036854775807);`,
+			});
+			expect(response.text).toEqual('9223372036854775807');
+		});
+
+		it('Should handle strtotime() correctly', async () => {
+			const response = await php.run({
+				code: `<?php
+				$timestamp = strtotime('2040-01-19 03:14:07');
+				echo json_encode([
+					'value' => $timestamp,
+					'type' => gettype($timestamp),
+				]);`,
+			});
+			const result = JSON.parse(response.text);
+			expect(result.value).toEqual(2210555647);
+			expect(result.type).toBe('integer');
+		});
+
+		it('Should handle adding 64 bit integers', async () => {
+			const response = await php.run({
+				code: `<?php 
+				$product = 4611686018427387000 + 4611686018427387000;
+				echo json_encode([
+					'value' => $product,
+					'type' => gettype($product),
+				]);
+				`,
+			});
+			const result = JSON.parse(response.text);
+			expect(result.value + '').toEqual('9223372036854774000');
+			expect(result.type).toEqual('integer');
+		});
+
+		it('Should handle multiplying 64 bit integers', async () => {
+			const response = await php.run({
+				code: `<?php 
+				$product = 2 * 4611686018427387000;
+				echo json_encode([
+					'value' => $product,
+					'type' => gettype($product),
+				]);
+				`,
+			});
+			const result = JSON.parse(response.text);
+			expect(result.value + '').toEqual('9223372036854774000');
+			expect(result.type).toEqual('integer');
+		});
+
+		it('Should handle large integer division', async () => {
+			const response = await php.run({
+				code: `<?php
+				$division = intdiv(9223372036854774000, 2);
+				echo json_encode([
+					'value' => $division,
+					'type' => gettype($division),
+				]);`,
+			});
+			const result = JSON.parse(response.text);
+			expect(result.value + '').toEqual('4611686018427387000');
+			expect(result.type).toEqual('integer');
+		});
+
+		it('Should handle PHP_MAX_INT', async () => {
+			const response = await php.run({
+				code: `<?php 
+			$maxInt = PHP_INT_MAX;
+			echo json_encode([
+				'value' => $maxInt,
+				'type' => gettype($maxInt),
+			]);
+			`,
+			});
+			const result = JSON.parse(response.text);
+			expect(result.value + '').toEqual('9223372036854776000');
+			expect(result.type).toEqual('integer');
 		});
 	});
 

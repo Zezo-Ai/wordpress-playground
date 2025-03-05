@@ -8,7 +8,7 @@ import {
 import { loadNodeRuntime } from '../lib';
 
 // @TODO Prevent crash on PHP versions 5.6, 7.2, 8.2
-describe.each(['7.0', '7.1', '7.3', '7.4', '8.0', '8.1'])(
+describe.each(['7.3', '7.4', '8.0', '8.1'])(
 	'PHP %s – process crash',
 	(phpVersion) => {
 		let php: PHP;
