@@ -47,12 +47,17 @@ export class ChunkedDecoderStream extends TransformStream<
 						}
 
 						// Look for CRLF after chunk size
+						if (buffer.length < chunkBytesNb + 2) {
+							// Not enough data, let's wait for more
+							return;
+						}
 						if (
-							buffer.length < chunkBytesNb + 2 ||
 							buffer[chunkBytesNb] !== 13 || // \r
 							buffer[chunkBytesNb + 1] !== 10 // \n
 						) {
-							return;
+							throw new Error(
+								'Invalid chunk size format. Expected CRLF after chunk size'
+							);
 						}
 
 						// Parse the chunk size
@@ -88,12 +93,15 @@ export class ChunkedDecoderStream extends TransformStream<
 						}
 					} else if (state === 'SCAN_CHUNK_TRAILER') {
 						if (buffer.length < 2) {
+							// Not enough data, let's wait for more
 							return;
 						}
 
 						if (buffer[0] !== 13 || buffer[1] !== 10) {
 							// \r\n
-							throw new Error('Expected CRLF after chunk data');
+							throw new Error(
+								'Invalid chunk trailer format. Expected CRLF after chunk data'
+							);
 						}
 
 						buffer = buffer.slice(2);
