@@ -4,6 +4,30 @@ All notable changes to this project are documented in this file by a CI job
 that runs on every NPM release. The file follows the [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 format.
 
+## [v1.0.30] (2025-04-07) 
+
+### Bug Fixes
+
+- Fix changelog workflow and backfill changelog entries from recent versions.
+
+### Various
+
+- Consider unexpected undefined symbols to be errors.
+- Ignore ca-bundle created by @php-wasm/cli.
+- Support Node.js args to built-script executor.
+- Support quickly testing php-wasm CLI changes with bun.
+- Update Emscripten version to 4.0.5.
+- Update Playground Node version to 20.9.0.
+- Upgrade express to 4.21.2.
+- [PHP-wasm] Use statfs from NODEFS in the Node version.
+
+### Contributors
+
+The following contributors merged PRs in this release:
+
+@bgrgicak @brandonpayton @wojtekn
+
+
 ## [v1.0.29] (2025-03-11)
 
 ### Various
