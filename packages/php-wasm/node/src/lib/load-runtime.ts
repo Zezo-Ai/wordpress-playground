@@ -7,6 +7,7 @@ import { loadPHPRuntime, FSHelpers } from '@php-wasm/universal';
 import fs from 'fs';
 import { getPHPLoaderModule } from '.';
 import { withNetworking } from './networking/with-networking';
+import { withICUData } from './data/with-icu-data';
 import { joinPaths } from '@php-wasm/util';
 
 export interface PHPLoaderOptions {
@@ -131,6 +132,7 @@ export async function loadNodeRuntime(
 	};
 	return await loadPHPRuntime(
 		await getPHPLoaderModule(phpVersion),
-		await withNetworking(emscriptenOptions)
+		await withNetworking(emscriptenOptions),
+		await withICUData(emscriptenOptions)
 	);
 }

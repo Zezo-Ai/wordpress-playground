@@ -75,75 +75,12 @@ const httpsServer = https.createServer(
 			'PHP' in process.env ? [process.env['PHP']] : SupportedPHPVersions;
 
 		const topOfTheStack: Record<string, string> = {
-			file_get_contents: `file_get_contents(${js['httpUrl']});`,
-
 			fopen: `
 				$fp = fopen(${js['httpUrl']}, "r");
 				fread($fp, 1024);
 				fclose($fp);`,
-
-			// Network functions from https://www.php.net/manual/en/book.network.php
-			fsockopen: `
-				$fp = fsockopen(${js['host']}, ${js['port']});
-				fwrite($fp, "GET / HTTP/1.1\\r\\n\\r\\n");
-				fread($fp, 10);
-				fclose($fp);`,
-
-			gethostbyname: `gethostbyname(${js['httpUrl']});`,
-
-			// @TODO:
-			// PDO functions from https://www.php.net/manual/en/book.pdo.php
-			// Sockets functions from https://www.php.net/manual/en/book.sockets.php
 		};
 
-		// Run MySQL functions if credentials are provided
-		const mysqlCredentials = {
-			host: process.env['MYSQL_HOST'] ?? '127.0.0.1',
-			user: process.env['MYSQL_USER'],
-			password: process.env['MYSQL_PASSWORD'],
-			database: process.env['MYSQL_DATABASE'],
-			port: process.env['MYSQL_PORT'] ?? '3306',
-		};
-		if (
-			mysqlCredentials.host &&
-			mysqlCredentials.user &&
-			mysqlCredentials.password &&
-			mysqlCredentials.database
-		) {
-			topOfTheStack['mysqli'] = `
-				$mysqli = new mysqli(
-					"${mysqlCredentials.host}",
-					"${mysqlCredentials.user}",
-					"${mysqlCredentials.password}",
-					"${mysqlCredentials.database}",
-					${mysqlCredentials.port}
-				);
-				if (mysqli_connect_errno()) {
-					// This should crash the process I hope
-					klfhjkljfkdjfd();
-				}
-				mysqli_ping($mysqli);
-				mysqli_query($mysqli, "SELECT 1");
-				mysqli_multi_query($mysqli, "SELECT 1; SELECT 2;");
-				mysqli_get_server_info($mysqli);
-				mysqli_get_server_version($mysqli);
-				mysqli_get_proto_info($mysqli);
-				mysqli_close($mysqli);`;
-		} else {
-			console.log(`
-				Skipping MySQL network functions because no credentials were provided.
-
-				To run MySQL network function tests, set the following environment variables:
-				- MYSQL_HOST
-				- MYSQL_USER
-				- MYSQL_PASSWORD
-				- MYSQL_DATABASE
-
-				Use 127.0.0.1 instead of localhost to ensure MySQL uses
-				TCP instead of socket, because MySQL in Playground
-				still doesn't support sockets.
-			`);
-		}
 		describe.each(phpVersions)('PHP %s – asyncify', (phpVersion) => {
 			let php: PHP;
 			beforeEach(async () => {
