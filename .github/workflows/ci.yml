@@ -30,20 +30,34 @@ jobs:
             fail-fast: false
             matrix:
                 include:
-                    - name: test-unit-asyncify (1/7)
+                    - name: test-unit-asyncify (1/14)
                       target: test
-                    - name: test-unit-asyncify (2/7)
+                    - name: test-unit-asyncify (2/14)
                       target: test-php
-                    - name: test-unit-asyncify (3/7)
-                      target: test-php-asyncify-file-get-contents
-                    - name: test-unit-asyncify (4/7)
-                      target: test-php-asyncify-fopen
-                    - name: test-unit-asyncify (5/7)
-                      target: test-php-asyncify-fsockopen
-                    - name: test-unit-asyncify (6/7)
-                      target: test-php-asyncify-gethostbyname
-                    - name: test-unit-asyncify (7/7)
-                      target: test-php-asyncify-mysqli
+                    - name: test-unit-asyncify (3/14)
+                      target: test-php-request-handler-files
+                    - name: test-unit-asyncify (4/14)
+                      target: test-php-request-handler-requests
+                    - name: test-unit-asyncify (5/14)
+                      target: test-php-asyncify-file-get-contents-http
+                    - name: test-unit-asyncify (6/14)
+                      target: test-php-asyncify-file-get-contents-https
+                    - name: test-unit-asyncify (7/14)
+                      target: test-php-asyncify-fopen-http
+                    - name: test-unit-asyncify (8/14)
+                      target: test-php-asyncify-fopen-https
+                    - name: test-unit-asyncify (9/14)
+                      target: test-php-asyncify-fsockopen-http
+                    - name: test-unit-asyncify (10/14)
+                      target: test-php-asyncify-fsockopen-https
+                    - name: test-unit-asyncify (11/14)
+                      target: test-php-asyncify-gethostbyname-http
+                    - name: test-unit-asyncify (12/14)
+                      target: test-php-asyncify-gethostbyname-https
+                    - name: test-unit-asyncify (13/14)
+                      target: test-php-asyncify-mysqli-http
+                    - name: test-unit-asyncify (14/14)
+                      target: test-php-asyncify-mysqli-https
         name: ${{ matrix.name }}
         services:
             mysql:
