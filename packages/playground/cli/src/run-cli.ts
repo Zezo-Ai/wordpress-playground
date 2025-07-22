@@ -43,9 +43,16 @@ import {
 	parseMountWithDelimiterArguments,
 } from './mounts';
 import { startServer } from './server';
-import type { Mount, PlaygroundCliWorker } from './worker-thread';
+import type { Mount, PlaygroundCliBlueprintV1Worker } from './worker-thread';
+import type {
+	PlaygroundCliBlueprintV2Worker,
+	WorkerBootArgs,
+} from './worker-thread-v2';
 // @ts-ignore
-import importedWorkerUrlString from './worker-thread?worker&url';
+import importedWorkerV1UrlString from './worker-thread?worker&url';
+// @ts-ignore
+import importedWorkerV2UrlString from './worker-thread-v2?worker&url';
+
 // @ts-ignore
 import { FileLockManagerForNode } from '@php-wasm/node';
 import { LoadBalancer } from './load-balancer';
@@ -203,6 +210,13 @@ export async function parseOptionsAndRunCLI() {
 			type: 'number',
 			coerce: (value?: number) => value ?? cpus().length - 1,
 		})
+		.option('experimental-blueprint-v2', {
+			describe: 'Use the experimental Blueprint V2 runner.',
+			type: 'boolean',
+			default: false,
+			// Remove the "hidden" flag once Blueprint V2 is fully supported
+			hidden: true,
+		})
 		.showHelpOnFail(false)
 		.check(async (args) => {
 			if (args.wp !== undefined && !isValidWordPressSlug(args.wp)) {
@@ -253,10 +267,6 @@ export async function parseOptionsAndRunCLI() {
 	const cliArgs = {
 		...args,
 		command,
-		blueprint: await resolveBlueprint({
-			sourceString: args.blueprint,
-			blueprintMayReadAdjacentFiles: args.blueprintMayReadAdjacentFiles,
-		}),
 		mount: [...(args.mount || []), ...(args['mount-dir'] || [])],
 		'mount-before-install': [
 			...(args['mount-before-install'] || []),
@@ -274,23 +284,41 @@ export interface RunCLIArgs {
 	login?: boolean;
 	mount?: Mount[];
 	'mount-before-install'?: Mount[];
-	'blueprint-may-read-adjacent-files'?: boolean;
 	outfile?: string;
 	php?: SupportedPHPVersion;
 	port?: number;
 	quiet?: boolean;
-	skipWordPressSetup?: boolean;
-	skipSqliteSetup?: boolean;
 	wp?: string;
 	autoMount?: boolean;
-	followSymlinks?: boolean;
 	experimentalMultiWorker?: number;
 	experimentalTrace?: boolean;
 	exitOnPrimaryWorkerCrash?: boolean;
 	internalCookieStore?: boolean;
 	'additional-blueprint-steps'?: any[];
 	xdebug?: boolean;
+	'experimental-blueprints-v2-runner'?: boolean;
+
+	// --------- Blueprint V1 args -----------
+	skipWordPressSetup?: boolean;
+	skipSqliteSetup?: boolean;
+	followSymlinks?: boolean;
+	'blueprint-may-read-adjacent-files'?: boolean;
+
+	// --------- Blueprint V2 args (not available via CLI yet) -----------
+	mode?: 'mount-only' | 'create-new-site' | 'apply-to-existing-site';
+	'db-engine'?: 'sqlite' | 'mysql';
+	'db-host'?: string;
+	'db-user'?: string;
+	'db-pass'?: string;
+	'db-name'?: string;
+	'db-path'?: string;
+	'truncate-new-site-directory'?: boolean;
+	allow?: string;
 }
+
+type PlaygroundCliWorker =
+	| PlaygroundCliBlueprintV1Worker
+	| PlaygroundCliBlueprintV2Worker;
 
 export interface RunCLIServer extends AsyncDisposable {
 	playground: RemoteAPI<PlaygroundCliWorker>;
@@ -349,10 +377,26 @@ export async function runCLI(args: RunCLIArgs): Promise<RunCLIServer> {
 				Number.MAX_SAFE_INTEGER / totalWorkerCount
 			);
 
-			const handler = new BlueprintsV1Handler(args, {
-				siteUrl: absoluteUrl,
-				processIdSpaceLength,
-			});
+			let handler: BlueprintsV1Handler | BlueprintsV2Handler;
+			if (args['experimental-blueprints-v2-runner']) {
+				handler = new BlueprintsV2Handler(args, {
+					siteUrl: absoluteUrl,
+					processIdSpaceLength,
+				});
+			} else {
+				handler = new BlueprintsV1Handler(args, {
+					siteUrl: absoluteUrl,
+					processIdSpaceLength,
+				});
+
+				if (typeof args.blueprint === 'string') {
+					args.blueprint = await resolveBlueprint({
+						sourceString: args.blueprint,
+						blueprintMayReadAdjacentFiles:
+							args['blueprint-may-read-adjacent-files'] === true,
+					});
+				}
+			}
 
 			// Kick off worker threads now to save time later.
 			// There is no need to wait for other async processes to complete.
@@ -403,15 +447,18 @@ export async function runCLI(args: RunCLIArgs): Promise<RunCLIServer> {
 
 				loadBalancer = new LoadBalancer(playground);
 
-				// Compile and run the blueprint
-				const compiledBlueprint = await handler.compileInputBlueprint(
-					args['additional-blueprint-steps'] || []
-				);
+				if (!args['experimental-blueprints-v2-runner']) {
+					const compiledBlueprint = await (
+						handler as BlueprintsV1Handler
+					).compileInputBlueprint(
+						args['additional-blueprint-steps'] || []
+					);
 
-				if (compiledBlueprint) {
-					logger.log(`Running the Blueprint...`);
-					await runBlueprintSteps(compiledBlueprint, playground);
-					logger.log(`Finished running the blueprint`);
+					if (compiledBlueprint) {
+						logger.log(`Running the Blueprint...`);
+						await runBlueprintSteps(compiledBlueprint, playground);
+						logger.log(`Finished running the blueprint`);
+					}
 				}
 
 				if (args.command === 'build-snapshot') {
@@ -518,6 +565,116 @@ export async function runCLI(args: RunCLIArgs): Promise<RunCLIServer> {
 }
 
 /**
+ * Boots Playground CLI workers using Blueprint version 2.
+ *
+ * Progress tracking, downloads, steps, and all other features are
+ * implemented in PHP and orchestrated by the worker thread.
+ */
+class BlueprintsV2Handler {
+	private phpVersion: SupportedPHPVersion;
+	private lastProgressMessage = '';
+
+	private siteUrl: string;
+	private processIdSpaceLength: number;
+	private args: RunCLIArgs;
+
+	constructor(
+		args: RunCLIArgs,
+		options: {
+			siteUrl: string;
+			processIdSpaceLength: number;
+		}
+	) {
+		this.args = args;
+		this.siteUrl = options.siteUrl;
+		this.processIdSpaceLength = options.processIdSpaceLength;
+		this.phpVersion = args.php as SupportedPHPVersion;
+	}
+
+	getWorkerUrl() {
+		return importedWorkerV2UrlString;
+	}
+
+	async bootPrimaryWorker(
+		phpPort: NodeMessagePort,
+		fileLockManagerPort: NodeMessagePort
+	) {
+		const playground: RemoteAPI<PlaygroundCliBlueprintV2Worker> =
+			consumeAPI(phpPort);
+
+		await playground.useFileLockManager(fileLockManagerPort);
+
+		const workerBootArgs = {
+			...this.args,
+			php: this.phpVersion,
+			siteUrl: this.siteUrl,
+			firstProcessId: 1,
+			processIdSpaceLength: this.processIdSpaceLength,
+			trace: this.args.debug || false,
+			blueprint: this.args.blueprint!,
+		};
+
+		await playground.bootAsPrimaryWorker(workerBootArgs);
+		return playground;
+	}
+
+	async bootSecondaryWorker({
+		worker,
+		fileLockManagerPort,
+		firstProcessId,
+	}: {
+		worker: SpawnedWorker;
+		fileLockManagerPort: NodeMessagePort;
+		firstProcessId: number;
+	}) {
+		const playground: RemoteAPI<PlaygroundCliBlueprintV2Worker> =
+			consumeAPI(worker.phpPort);
+
+		await playground.useFileLockManager(fileLockManagerPort);
+
+		const workerBootArgs: WorkerBootArgs = {
+			...this.args,
+			php: this.phpVersion!,
+			siteUrl: this.siteUrl,
+			firstProcessId,
+			processIdSpaceLength: this.processIdSpaceLength,
+			trace: this.args.debug || false,
+			blueprint: this.args.blueprint!,
+		};
+
+		await playground.bootAsSecondaryWorker(workerBootArgs);
+
+		return playground;
+	}
+
+	writeProgressUpdate(
+		writeStream: NodeJS.WriteStream,
+		message: string,
+		finalUpdate: boolean
+	) {
+		if (message === this.lastProgressMessage) {
+			// Avoid repeating the same message
+			return;
+		}
+		this.lastProgressMessage = message;
+
+		if (writeStream.isTTY) {
+			// Overwrite previous progress updates in-place for a quieter UX.
+			writeStream.cursorTo(0);
+			writeStream.write(message);
+			writeStream.clearLine(1);
+
+			if (finalUpdate) {
+				writeStream.write('\n');
+			}
+		} else {
+			// Fall back to writing one line per progress update
+			writeStream.write(`${message}\n`);
+		}
+	}
+}
+
+/**
  * Boots Playground CLI workers using Blueprint version 1.
  *
  * Progress tracking, downloads, steps, and all other features are
@@ -544,7 +701,7 @@ class BlueprintsV1Handler {
 	}
 
 	getWorkerUrl() {
-		return importedWorkerUrlString;
+		return importedWorkerV1UrlString;
 	}
 
 	async bootPrimaryWorker(
@@ -620,7 +777,7 @@ class BlueprintsV1Handler {
 		const mountsBeforeWpInstall = this.args['mount-before-install'] || [];
 		const mountsAfterWpInstall = this.args.mount || [];
 
-		const playground = consumeAPI<PlaygroundCliWorker>(phpPort);
+		const playground = consumeAPI<PlaygroundCliBlueprintV1Worker>(phpPort);
 
 		// Comlink communication proxy
 		await playground.isConnected();
@@ -628,7 +785,7 @@ class BlueprintsV1Handler {
 		logger.log(`Booting WordPress...`);
 
 		await playground.useFileLockManager(fileLockManagerPort);
-		await playground.boot({
+		await playground.bootAsPrimaryWorker({
 			phpVersion: this.phpVersion,
 			wpVersion: compiledBlueprint.versions.wp,
 			absoluteUrl: this.siteUrl,
@@ -670,13 +827,13 @@ class BlueprintsV1Handler {
 		fileLockManagerPort: NodeMessagePort;
 		firstProcessId: number;
 	}) {
-		const additionalPlayground = consumeAPI<PlaygroundCliWorker>(
+		const additionalPlayground = consumeAPI<PlaygroundCliBlueprintV1Worker>(
 			worker.phpPort
 		);
 
 		await additionalPlayground.isConnected();
 		await additionalPlayground.useFileLockManager(fileLockManagerPort);
-		await additionalPlayground.boot({
+		await additionalPlayground.bootAsSecondaryWorker({
 			phpVersion: this.phpVersion,
 			absoluteUrl: this.siteUrl,
 			mountsBeforeWpInstall: this.args['mount-before-install'] || [],
@@ -703,14 +860,7 @@ class BlueprintsV1Handler {
 
 	async compileInputBlueprint(additionalBlueprintSteps: any[]) {
 		const args = this.args;
-		const resolvedBlueprint =
-			typeof args.blueprint === 'string'
-				? await resolveBlueprint({
-						sourceString: args.blueprint,
-						blueprintMayReadAdjacentFiles:
-							args['blueprint-may-read-adjacent-files'] === true,
-				  })
-				: (args.blueprint as BlueprintDeclaration);
+		const resolvedBlueprint = args.blueprint as BlueprintDeclaration;
 		/**
 		 * @TODO This looks similar to the resolveBlueprint() call in the website package:
 		 * 	     https://github.com/WordPress/wordpress-playground/blob/ce586059e5885d185376184fdd2f52335cca32b0/packages/playground/website/src/main.tsx#L41
