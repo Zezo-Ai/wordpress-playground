@@ -58,7 +58,8 @@ export class BlueprintsV1Handler {
 
 	async bootPrimaryWorker(
 		phpPort: NodeMessagePort,
-		fileLockManagerPort: NodeMessagePort
+		fileLockManagerPort: NodeMessagePort,
+		nativeInternalDirPath: string
 	) {
 		const compiledBlueprint = await this.compileInputBlueprint(
 			this.args['additional-blueprint-steps'] || []
@@ -138,7 +139,7 @@ export class BlueprintsV1Handler {
 		await playground.bootAsPrimaryWorker({
 			phpVersion: this.phpVersion,
 			wpVersion: compiledBlueprint.versions.wp,
-			absoluteUrl: this.siteUrl,
+			siteUrl: this.siteUrl,
 			mountsBeforeWpInstall,
 			mountsAfterWpInstall,
 			wordPressZip: wordPressZip && (await wordPressZip!.arrayBuffer()),
@@ -150,6 +151,7 @@ export class BlueprintsV1Handler {
 			trace,
 			internalCookieStore: this.args.internalCookieStore,
 			withXdebug: this.args.xdebug,
+			nativeInternalDirPath,
 		});
 
 		if (
@@ -172,10 +174,12 @@ export class BlueprintsV1Handler {
 		worker,
 		fileLockManagerPort,
 		firstProcessId,
+		nativeInternalDirPath,
 	}: {
 		worker: SpawnedWorker;
 		fileLockManagerPort: NodeMessagePort;
 		firstProcessId: number;
+		nativeInternalDirPath: string;
 	}) {
 		const additionalPlayground = consumeAPI<PlaygroundCliBlueprintV1Worker>(
 			worker.phpPort
@@ -184,17 +188,10 @@ export class BlueprintsV1Handler {
 		await additionalPlayground.isConnected();
 		await additionalPlayground.useFileLockManager(fileLockManagerPort);
 		await additionalPlayground.bootAsSecondaryWorker({
-			phpVersion: this.phpVersion,
-			absoluteUrl: this.siteUrl,
+			phpVersion: this.phpVersion!,
+			siteUrl: this.siteUrl,
 			mountsBeforeWpInstall: this.args['mount-before-install'] || [],
 			mountsAfterWpInstall: this.args['mount'] || [],
-			// Skip WordPress zip because we share the /wordpress directory
-			// populated by the initial worker.
-			wordPressZip: undefined,
-			// Skip SQLite integration plugin for now because we
-			// will copy it from primary's `/internal` directory.
-			sqliteIntegrationPluginZip: undefined,
-			dataSqlPath: '/wordpress/wp-content/database/.ht.sqlite',
 			firstProcessId,
 			processIdSpaceLength: this.processIdSpaceLength,
 			followSymlinks: this.args.followSymlinks === true,
@@ -203,6 +200,7 @@ export class BlueprintsV1Handler {
 			//        will have a separate cookie store.
 			internalCookieStore: this.args.internalCookieStore,
 			withXdebug: this.args.xdebug,
+			nativeInternalDirPath,
 		});
 		await additionalPlayground.isReady();
 		return additionalPlayground;
