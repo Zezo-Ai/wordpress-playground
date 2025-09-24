@@ -9,6 +9,43 @@ All notable changes to this project are documented in this file by a CI job
 that runs on every NPM release. The file follows the [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 format.
 
+## [v3.0.3] (2025-09-23) 
+
+### Blueprints
+
+- Replace randomString() with randomFilename() in installAsset(). ([#2677](https://github.com/WordPress/wordpress-playground/pull/2677))
+
+### Documentation
+
+- [Docs] Adding steps to translate documentation with GitHub UI. ([#2666](https://github.com/WordPress/wordpress-playground/pull/2666))
+- [i18n] Add French translation for documentation.md. ([#2670](https://github.com/WordPress/wordpress-playground/pull/2670))
+- [i18n] Adding Architecture page to Brazilian Portuguese. ([#2667](https://github.com/WordPress/wordpress-playground/pull/2667))
+
+### PHP WebAssembly
+
+- [PHP Worker] listen to all PHP instances events via worker.addEventListener(). ([#2673](https://github.com/WordPress/wordpress-playground/pull/2673))
+
+### Website
+
+
+#### Blueprints
+
+- Flatten the stored runtime configuration format. ([#2671](https://github.com/WordPress/wordpress-playground/pull/2671))
+- Report Blueprint v2 progress. ([#2674](https://github.com/WordPress/wordpress-playground/pull/2674))
+- [Blueprints] Separate computing the runtime configuration from compiling a Blueprint. ([#2672](https://github.com/WordPress/wordpress-playground/pull/2672))
+
+### Various
+
+- [i18n] Add Japanese translations to VS Code extension. ([#2668](https://github.com/WordPress/wordpress-playground/pull/2668))
+- [i18n] Add Japanese translations to php-wasm/node. ([#2669](https://github.com/WordPress/wordpress-playground/pull/2669))
+
+### Contributors
+
+The following contributors merged PRs in this release:
+
+@adamziel @beryl-dlg @fellyph @shimotmk
+
+
 ## [v3.0.2] (2025-09-22) 
 
 ### Blueprints
