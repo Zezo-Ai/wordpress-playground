@@ -4,6 +4,33 @@ All notable changes to this project are documented in this file by a CI job
 that runs on every NPM release. The file follows the [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 format.
 
+## [v3.0.4] (2025-09-25) 
+
+### Experiments
+
+
+#### GitHub integration
+
+- [CLI] Polyfill the Buffer class without making it an empty object in CLI. ([#2681](https://github.com/WordPress/wordpress-playground/pull/2681))
+
+### PHP WebAssembly
+
+
+#### Website
+
+- [Website] Disable curl_share_init by default (to make Composer work). ([#2679](https://github.com/WordPress/wordpress-playground/pull/2679))
+
+### Website
+
+- Resolve the Blueprint declaration for the 'View Blueprint' button. ([#2675](https://github.com/WordPress/wordpress-playground/pull/2675))
+
+### Contributors
+
+The following contributors merged PRs in this release:
+
+@adamziel
+
+
 ## [v3.0.3] (2025-09-23) 
 
 ### Blueprints
