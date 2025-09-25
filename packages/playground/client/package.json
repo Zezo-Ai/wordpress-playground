@@ -1,6 +1,6 @@
 {
 	"name": "@wp-playground/client",
-	"version": "3.0.3",
+	"version": "3.0.4",
 	"description": "WordPress Playground client",
 	"repository": {
 		"type": "git",
