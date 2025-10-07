@@ -6,3 +6,7 @@ updates:
       interval: "daily"
     exclude-paths:
       - packages
+    ignore:
+      # We're stuck with an older typedoc version
+      - dependency-name: "typedoc"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
