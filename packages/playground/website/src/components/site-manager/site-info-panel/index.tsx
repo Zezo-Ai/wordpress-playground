@@ -33,6 +33,37 @@ import { setActiveModal } from '../../../lib/state/redux/slice-ui';
 import { modalSlugs } from '../../layout';
 import { removeSite } from '../../../lib/state/redux/slice-sites';
 import { BlueprintReflection } from '@wp-playground/blueprints';
+import { lazy, Suspense, useState, useEffect } from 'react';
+
+const SiteFileBrowser = lazy(() =>
+	import('../site-file-browser').then((m) => ({ default: m.SiteFileBrowser }))
+);
+
+const LAST_TAB_STORAGE_KEY = 'playground-site-last-tabs';
+
+function getSiteLastTab(siteSlug: string): string | null {
+	try {
+		const stored = localStorage.getItem(LAST_TAB_STORAGE_KEY);
+		if (!stored) {
+			return null;
+		}
+		const tabs = JSON.parse(stored);
+		return tabs[siteSlug] || null;
+	} catch {
+		return null;
+	}
+}
+
+function setSiteLastTab(siteSlug: string, tabName: string): void {
+	try {
+		const stored = localStorage.getItem(LAST_TAB_STORAGE_KEY);
+		const tabs = stored ? JSON.parse(stored) : {};
+		tabs[siteSlug] = tabName;
+		localStorage.setItem(LAST_TAB_STORAGE_KEY, JSON.stringify(tabs));
+	} catch {
+		// Silently fail if localStorage is not available
+	}
+}
 
 export function SiteInfoPanel({
 	className,
@@ -47,6 +78,21 @@ export function SiteInfoPanel({
 }) {
 	const offline = useAppSelector((state) => state.ui.offline);
 	const dispatch = useAppDispatch();
+
+	// Load the last active tab for this site
+	const [initialTabName] = useState(() => {
+		const lastTab = getSiteLastTab(site.slug);
+		return lastTab || 'settings';
+	});
+
+	// Resolve documentRoot from playground client
+	const [documentRoot, setDocumentRoot] = useState<string | null>(null);
+
+	// Save the tab when it changes
+	const handleTabSelect = (tabName: string) => {
+		setSiteLastTab(site.slug, tabName);
+	};
+
 	const removeSiteAndCloseMenu = async (onClose: () => void) => {
 		// TODO: Replace with HTML-based dialog
 		const proceed = window.confirm(
@@ -62,6 +108,18 @@ export function SiteInfoPanel({
 		selectClientInfoBySiteSlug(state, site.slug)
 	);
 	const playground = clientInfo?.client;
+
+	// Resolve documentRoot from playground
+	useEffect(() => {
+		if (!playground) {
+			setDocumentRoot(null);
+			return;
+		}
+
+		void playground.documentRoot.then((root) => {
+			setDocumentRoot(root);
+		});
+	}, [playground]);
 
 	function navigateTo(path: string) {
 		if (siteViewHidden) {
@@ -343,11 +401,16 @@ export function SiteInfoPanel({
 				<FlexItem style={{ flexGrow: 1 }}>
 					<TabPanel
 						className={css.tabs}
-						onSelect={function noRefCheck() {}}
+						initialTabName={initialTabName}
+						onSelect={handleTabSelect}
 						tabs={[
 							{
 								name: 'settings',
 								title: 'Settings',
+							},
+							{
+								name: 'files',
+								title: 'File browser',
 							},
 							{
 								name: 'logs',
@@ -357,43 +420,72 @@ export function SiteInfoPanel({
 					>
 						{(tab) => (
 							<>
-								{tab.name === 'settings' && (
-									<div
-										className={classNames(css.tabContents)}
-									>
-										{offline ? (
-											<div className={css.padded}>
-												<OfflineNotice />
-											</div>
-										) : null}
-
-										{isTemporary ? (
-											<TemporarySiteNotice
-												className={css.siteNotice}
-											/>
-										) : null}
-
-										<ActiveSiteSettingsForm />
-									</div>
-								)}
-								{tab.name === 'logs' && (
-									<div
-										className={classNames(
-											css.tabContents,
-											css.padded
-										)}
-									>
-										<div
-											className={classNames(
-												css.logsWrapper
-											)}
-										>
-											<SiteLogs
-												className={css.logsSection}
-											/>
+								<div
+									className={classNames(css.tabContents, {
+										[css.tabHidden]:
+											tab.name !== 'settings',
+									})}
+									hidden={tab.name !== 'settings'}
+								>
+									{offline ? (
+										<div className={css.padded}>
+											<OfflineNotice />
 										</div>
+									) : null}
+
+									{isTemporary ? (
+										<TemporarySiteNotice
+											className={css.siteNotice}
+										/>
+									) : null}
+
+									<ActiveSiteSettingsForm />
+								</div>
+								<div
+									className={classNames(
+										css.tabContents,
+										css.fileBrowserTab,
+										{
+											[css.tabHidden]:
+												tab.name !== 'files',
+										}
+									)}
+									hidden={tab.name !== 'files'}
+								>
+									<Suspense
+										fallback={
+											<div className={css.padded}>
+												Loading file browser...
+											</div>
+										}
+									>
+										{documentRoot && (
+											<SiteFileBrowser
+												key={site.slug}
+												site={site}
+												isVisible={tab.name === 'files'}
+												documentRoot={documentRoot}
+											/>
+										)}
+									</Suspense>
+								</div>
+								<div
+									className={classNames(
+										css.tabContents,
+										css.padded,
+										{
+											[css.tabHidden]:
+												tab.name !== 'logs',
+										}
+									)}
+									hidden={tab.name !== 'logs'}
+								>
+									<div
+										className={classNames(css.logsWrapper)}
+									>
+										<SiteLogs className={css.logsSection} />
 									</div>
-								)}
+								</div>
 							</>
 						)}
 					</TabPanel>
