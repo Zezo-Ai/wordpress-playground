@@ -4,6 +4,19 @@ All notable changes to this project are documented in this file by a CI job
 that runs on every NPM release. The file follows the [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 format.
 
+## [v3.0.18] (2025-10-31) 
+
+### PHP WebAssembly
+
+- Remove old, unused .wasm files from @php-wasm/web. ([#2847](https://github.com/WordPress/wordpress-playground/pull/2847))
+
+### Contributors
+
+The following contributors merged PRs in this release:
+
+@brandonpayton
+
+
 ## [v3.0.17] (2025-10-31) 
 
 ### PHP WebAssembly
