@@ -1,22 +1,36 @@
 ---
 title: php-wasm/node
 slug: /developers/local-development/php-wasm-node
-description: WordPress Playground brings WebAssembly-powered PHP to Node.js for server-side execution, data processing, and testing without a native install.
+description: WordPress Playground trae PHP con WebAssembly a Node.js para ejecución del lado del servidor, procesamiento de datos y pruebas sin instalación nativa.
 ---
 
-# Using WordPress Playground in Node.js
+<!-- # Using WordPress Playground in Node.js -->
 
-As a WebAssembly project, you can also use WordPress Playground in Node.js.
+# Usando WordPress Playground en Node.js
 
-If you need low-level control over the underlying WebAssembly PHP build, take a look at the [@php-wasm/node package](https://npmjs.org/@php-wasm/node) which ships the PHP WebAssembly runtime. This package is at the core of all WordPress Playground tools for Node.js.
+<!-- As a WebAssembly project, you can also use WordPress Playground in Node.js. -->
 
-Consult the [complete list](/api/node) of Classes, Functions, Interfaces, and Type Aliases.
+Como un proyecto WebAssembly, también puedes usar WordPress Playground en Node.js.
 
-## WebAssembly PHP for Node.js
+<!-- If you need low-level control over the underlying WebAssembly PHP build, take a look at the [@php-wasm/node package](https://npmjs.org/@php-wasm/node) which ships the PHP WebAssembly runtime. This package is at the core of all WordPress Playground tools for Node.js. -->
 
-This package ships WebAssembly PHP binaries and the JavaScript API optimized for Node.js. It uses the host file system directly and can access the network if you plug in a custom WS proxy.
+Si necesitas control de bajo nivel sobre la compilación WebAssembly de PHP subyacente, echa un vistazo al [paquete @php-wasm/node](https://npmjs.org/@php-wasm/node) que incluye el runtime WebAssembly de PHP. Este paquete está en el núcleo de todas las herramientas de WordPress Playground para Node.js.
 
-### Basic usage
+<!-- Consult the [complete list](/api/node) of Classes, Functions, Interfaces, and Type Aliases. -->
+
+Consulta la [lista completa](/api/node) de Clases, Funciones, Interfaces y Alias de Tipos.
+
+<!-- ## WebAssembly PHP for Node.js -->
+
+## WebAssembly PHP para Node.js
+
+<!-- This package ships WebAssembly PHP binaries and the JavaScript API optimized for Node.js. It uses the host file system directly and can access the network if you plug in a custom WS proxy. -->
+
+Este paquete incluye binarios WebAssembly de PHP y la API JavaScript optimizada para Node.js. Utiliza el sistema de archivos del host directamente y puede acceder a la red si conectas un proxy WS personalizado.
+
+<!-- ### Basic usage -->
+
+### Uso básico
 
 ```javascript
 import { PHP } from '@php-wasm/universal';
@@ -29,22 +43,38 @@ const output = await php.runStream({
 console.log(await output.stdoutText);
 ```
 
-## Use cases
+<!-- ## Use cases -->
 
-Run PHP inside Node.js without a native PHP install. Allow developer to produce the following solutions:
+## Casos de uso
 
--   CI/CD jobs and developer tooling.
--   Support education and WordPress workflows: Power interactive tutorials, sandboxes, and coding challenges.
--   Generate content and prototype server behavior.
--   Render HTML using PHP templates, and quickly stand up mock API endpoints to simulate requests.
+<!-- Run PHP inside Node.js without a native PHP install. Allow developer to produce the following solutions: -->
+<!-- - CI/CD jobs and developer tooling. -->
+<!-- - Support education and WordPress workflows: Power interactive tutorials, sandboxes, and coding challenges. -->
+<!-- - Generate content and prototype server behavior. -->
+<!-- - Render HTML using PHP templates, and quickly stand up mock API endpoints to simulate requests. -->
 
-## Practical demos
+Ejecuta PHP dentro de Node.js sin instalación nativa de PHP. Permite al desarrollador producir las siguientes soluciones:
 
-We will list some examples using the PHP-WASM package.
+-   Tareas de CI/CD y herramientas de desarrollo.
+-   Soporte a educación y flujos de trabajo de WordPress: potencia tutoriales interactivos, sandboxes y retos de código.
+-   Generar contenido y prototipar comportamiento de servidor.
+-   Renderizar HTML usando plantillas PHP y levantar rápidamente endpoints de API simulados para simular peticiones.
 
-### Demo 1: File system operations
+<!-- ## Practical demos -->
 
-Execute PHP scripts that interact with the file system:
+## Demos prácticas
+
+<!-- We will list some examples using the PHP-WASM package. -->
+
+Enumeraremos algunos ejemplos usando el paquete PHP-WASM.
+
+<!-- ### Demo 1: File system operations -->
+
+### Demo 1: Operaciones en el sistema de archivos
+
+<!-- Execute PHP scripts that interact with the file system: -->
+
+Ejecuta scripts PHP que interactúan con el sistema de archivos:
 
 ```javascript
 import { PHP } from '@php-wasm/universal';
@@ -52,10 +82,10 @@ import { loadNodeRuntime } from '@php-wasm/node';
 
 const php = new PHP(await loadNodeRuntime('8.3'));
 
-// Create directory structure
+// Crear estructura de directorios
 php.mkdir('/app/data');
 
-// Write configuration file
+// Escribir archivo de configuración
 await php.writeFile(
 	'/app/config.json',
 	JSON.stringify({
@@ -65,7 +95,7 @@ await php.writeFile(
 	})
 );
 
-// Create and run PHP script that reads the config
+// Crear y ejecutar script PHP que lee la configuración
 await php.writeFile(
 	'/app/index.php',
 	`<?php
@@ -74,7 +104,7 @@ echo "Application: " . $config['app'] . "\\n";
 echo "Version: " . $config['version'] . "\\n";
 echo "Debug Mode: " . ($config['debug'] ? 'ON' : 'OFF') . "\\n";
 
-// List all files
+// Listar todos los archivos
 echo "\\nFiles in /app:\\n";
 foreach (scandir('/app') as $file) {
     if ($file !== '.' && $file !== '..') {
@@ -88,9 +118,13 @@ const result = await php.runStream({ scriptPath: '/app/index.php' });
 console.log(await result.stdoutText);
 ```
 
-### Demo 2: SQLite database operations
+<!-- ### Demo 2: SQLite database operations -->
 
-Use PHP's SQLite extension for data storage:
+### Demo 2: Operaciones de base de datos SQLite
+
+<!-- Use PHP's SQLite extension for data storage: -->
+
+Usa la extensión SQLite de PHP para almacenamiento de datos:
 
 ```javascript
 import { PHP } from '@php-wasm/universal';
@@ -98,16 +132,16 @@ import { loadNodeRuntime } from '@php-wasm/node';
 
 const php = new PHP(await loadNodeRuntime('8.3'));
 
-// Create directory for database
+// Crear directorio para la base de datos
 php.mkdir('/data');
 
-// Create database, insert data, and query
+// Crear base de datos, insertar datos y consultar
 const result = await php.runStream({
 	code: `<?php
-// Create/connect to SQLite database
+// Crear/conectar a la base de datos SQLite
 $db = new SQLite3('/data/app.db');
 
-// Create table
+// Crear tabla
 $db->exec('CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
@@ -115,7 +149,7 @@ $db->exec('CREATE TABLE IF NOT EXISTS users (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 )');
 
-// Insert sample data
+// Insertar datos de ejemplo
 $stmt = $db->prepare('INSERT INTO users (name, email) VALUES (?, ?)');
 $users = [
     ['Alice Johnson', 'alice@example.com'],
@@ -129,7 +163,7 @@ foreach ($users as $user) {
     $stmt->execute();
 }
 
-// Query data
+// Consultar datos
 echo "All Users:\\n";
 echo str_repeat('-', 50) . "\\n";
 $results = $db->query('SELECT * FROM users ORDER BY name');
@@ -143,14 +177,18 @@ $db->close();
 
 console.log(await result.stdoutText);
 
-// Database file persists in the virtual file system
+// El archivo de base de datos persiste en el sistema de archivos virtual
 const dbExists = await php.fileExists('/data/app.db');
 console.log('\nDatabase persisted:', dbExists);
 ```
 
-### Demo 3: Processing uploaded files (ZIP archives)
+<!-- ### Demo 3: Processing uploaded files (ZIP archives) -->
 
-Process ZIP files using PHP's Libzip extension:
+### Demo 3: Procesamiento de archivos subidos (archivos ZIP)
+
+<!-- Process ZIP files using PHP's Libzip extension: -->
+
+Procesa archivos ZIP usando la extensión Libzip de PHP:
 
 ```javascript
 import { PHP } from '@php-wasm/universal';
@@ -158,15 +196,15 @@ import { loadNodeRuntime } from '@php-wasm/node';
 
 const php = new PHP(await loadNodeRuntime('8.3'));
 
-// Create sample files
+// Crear archivos de ejemplo
 php.mkdir('/uploads');
 await php.writeFile('/uploads/readme.txt', 'This is a sample text file');
 await php.writeFile('/uploads/data.json', JSON.stringify({ name: 'Test', version: '1.0' }));
 
-// Create, process, and extract ZIP archive
+// Crear, procesar y extraer archivo ZIP
 const result = await php.runStream({
 	code: `<?php
-// Create ZIP archive
+// Crear archivo ZIP
 $zip = new ZipArchive();
 $zip->open('/uploads/archive.zip', ZipArchive::CREATE);
 $zip->addFromString('readme.txt', file_get_contents('/uploads/readme.txt'));
@@ -176,7 +214,7 @@ $zip->close();
 
 echo "ZIP archive created successfully\\n\\n";
 
-// Read and display archive contents
+// Leer y mostrar contenido del archivo
 $zip->open('/uploads/archive.zip');
 echo "Archive Contents:\\n";
 echo str_repeat('=', 50) . "\\n";
@@ -187,13 +225,13 @@ for ($i = 0; $i < $zip->numFiles; $i++) {
     echo sprintf("%-40s %10s KB\\n", $stat['name'], $size);
 }
 
-// Extract files
+// Extraer archivos
 $zip->extractTo('/uploads/extracted/');
 $zip->close();
 
 echo "\\nExtracted successfully to /uploads/extracted/\\n";
 
-// List extracted files
+// Listar archivos extraídos
 echo "\\nExtracted Files:\\n";
 $files = new RecursiveIteratorIterator(
     new RecursiveDirectoryIterator('/uploads/extracted/')
@@ -209,9 +247,13 @@ foreach ($files as $file) {
 console.log(await result.stdoutText);
 ```
 
-### Demo 4: HTTP request/response pattern
+<!-- ### Demo 4: HTTP request/response pattern -->
 
-Simulate web server behavior with request handlers:
+### Demo 4: Patrón de petición/respuesta HTTP
+
+<!-- Simulate web server behavior with request handlers: -->
+
+Simula comportamiento de servidor web con manejadores de peticiones:
 
 ```javascript
 import { PHP } from '@php-wasm/universal';
@@ -219,18 +261,18 @@ import { loadNodeRuntime } from '@php-wasm/node';
 
 const php = new PHP(await loadNodeRuntime('8.3'));
 
-// Set up a simple API endpoint
+// Configurar un endpoint de API simple
 await php.mkdir('/www/api');
 await php.writeFile(
 	'/www/api/users.php',
 	`<?php
 header('Content-Type: application/json');
 
-// Parse request
+// Analizar petición
 $method = $_SERVER['REQUEST_METHOD'];
 $input = json_decode(file_get_contents('php://input'), true);
 
-// Simple routing
+// Enrutamiento simple
 switch ($method) {
     case 'GET':
         echo json_encode([
@@ -260,7 +302,7 @@ switch ($method) {
 ?>`
 );
 
-// Make GET request
+// Hacer petición GET
 const getResponse = await php.runStream({
 	scriptPath: '/www/api/users.php',
 	env: {
@@ -271,7 +313,7 @@ const getResponse = await php.runStream({
 });
 console.log('GET Response:', await getResponse.stdoutText);
 
-// Make POST request
+// Hacer petición POST
 const postResponse = await php.runStream({
 	scriptPath: '/www/api/users.php',
 	env: {
@@ -284,9 +326,13 @@ const postResponse = await php.runStream({
 console.log('\\nPOST Response:', await postResponse.stdoutText);
 ```
 
-### Demo 5: Template rendering engine
+<!-- ### Demo 5: Template rendering engine -->
 
-Use PHP as a templating engine for dynamic content:
+### Demo 5: Motor de renderización de plantillas
+
+<!-- Use PHP as a templating engine for dynamic content: -->
+
+Usa PHP como motor de plantillas para contenido dinámico:
 
 ```javascript
 import { PHP } from '@php-wasm/universal';
@@ -294,10 +340,10 @@ import { loadNodeRuntime } from '@php-wasm/node';
 
 const php = new PHP(await loadNodeRuntime('8.3'));
 
-// Create templates directory
+// Crear directorio de plantillas
 php.mkdir('/templates');
 
-// Create template
+// Crear plantilla
 await php.writeFile(
 	'/templates/email.php',
 	`<!DOCTYPE html>
@@ -335,7 +381,7 @@ await php.writeFile(
 </html>`
 );
 
-// Render template with data
+// Renderizar plantilla con datos
 const templateData = {
 	name: 'Priya Sharma',
 	email: 'priya@example.com',
@@ -344,7 +390,7 @@ const templateData = {
 	features: ['Dashboard Access', 'API Integration', 'Premium Support', 'Custom Branding'],
 };
 
-// Pass data to template via environment variables or files
+// Pasar datos a la plantilla vía variables de entorno o archivos
 await php.writeFile('/template-data.json', JSON.stringify(templateData));
 
 const result = await php.runStream({
@@ -356,12 +402,16 @@ const result = await php.runStream({
 });
 
 console.log(await result.stdoutText);
-// Now you have rendered HTML that can be sent via email or saved
+// Ahora tienes HTML renderizado que puede enviarse por email o guardarse
 ```
 
-### Demo 6: Real-time code execution and streaming
+<!-- ### Demo 6: Real-time code execution and streaming -->
 
-Process PHP output as it's generated:
+### Demo 6: Ejecución de código en tiempo real y streaming
+
+<!-- Process PHP output as it's generated: -->
+
+Procesa la salida de PHP conforme se genera:
 
 ```javascript
 import { PHP } from '@php-wasm/universal';
@@ -372,7 +422,7 @@ const php = new PHP(await loadNodeRuntime('8.3'));
 await php.writeFile(
 	'/stream-demo.php',
 	`<?php
-// Simulate long-running process
+// Simular proceso de larga duración
 echo "Starting process...\\n";
 flush();
 
@@ -386,7 +436,7 @@ echo "Process complete!\\n";
 ?>`
 );
 
-// Run PHP script
+// Ejecutar script PHP
 const streamedResponse = await php.runStream({
 	scriptPath: '/stream-demo.php',
 });
@@ -400,11 +450,17 @@ streamedResponse.stdout.pipeTo(
 );
 ```
 
-## Integration patterns
+<!-- ## Integration patterns -->
 
-### Pattern 1: Express.js middleware
+## Patrones de integración
 
-Integrate PHP processing into an Express.js application:
+<!-- ### Pattern 1: Express.js middleware -->
+
+### Patrón 1: Middleware Express.js
+
+<!-- Integrate PHP processing into an Express.js application: -->
+
+Integra procesamiento PHP en una aplicación Express.js:
 
 ```TypeScript
 import express from 'express';
@@ -414,7 +470,7 @@ import { loadNodeRuntime } from '@php-wasm/node';
 const app = express();
 const php = new PHP(await loadNodeRuntime('8.3'));
 
-// PHP execution middleware
+// Middleware de ejecución PHP
 app.use('/php', async (req, res, next) => {
 	try {
 		const phpScript = req.query.script || 'index.php';
@@ -440,9 +496,13 @@ app.listen(3000, () => {
 });
 ```
 
-### Pattern 2: Automated testing
+<!-- ### Pattern 2: Automated testing -->
 
-Create automated tests for PHP code:
+### Patrón 2: Pruebas automatizadas
+
+<!-- Create automated tests for PHP code: -->
+
+Crea pruebas automatizadas para código PHP:
 
 ```TypeScript
 import { describe, it, expect, beforeAll } from '@jest/globals';
@@ -488,9 +548,13 @@ describe('PHP Functions', () => {
 });
 ```
 
-### Pattern 3: Build tool integration
+<!-- ### Pattern 3: Build tool integration -->
 
-Use in build scripts with other Node.js tools:
+### Patrón 3: Integración con herramientas de construcción
+
+<!-- Use in build scripts with other Node.js tools: -->
+
+Usa en scripts de construcción con otras herramientas Node.js:
 
 ```javascript
 import { PHP } from '@php-wasm/universal';
@@ -500,10 +564,10 @@ import fs from 'fs/promises';
 async function generateDocumentation() {
 	const php = new PHP(await loadNodeRuntime('8.3'));
 
-	// Create output directory
+	// Crear directorio de salida
 	php.mkdir('/output');
 
-	// Generate documentation
+	// Generar documentación
 	const result = await php.runStream({
 		code: `<?php
 echo "Generating documentation...\\n";
@@ -518,7 +582,7 @@ echo "Documentation generated successfully!\\n";
 
 	console.log(await result.stdoutText);
 
-	// Extract generated docs back to Node.js file system
+	// Extraer documentación generada de vuelta al sistema de archivos Node.js
 	await fs.mkdir('./docs', { recursive: true });
 	const summaryContent = await php.readFileAsText('/output/summary.md');
 	await fs.writeFile('./docs/summary.md', summaryContent);
@@ -529,9 +593,13 @@ echo "Documentation generated successfully!\\n";
 generateDocumentation().catch(console.error);
 ```
 
-## Advanced features
+<!-- ## Advanced features -->
 
-### Working with environment variables
+## Características avanzadas
+
+<!-- ### Working with environment variables -->
+
+### Trabajando con variables de entorno
 
 ```javascript
 import { PHP } from '@php-wasm/universal';
@@ -549,7 +617,9 @@ const result = await php.runStream({
 console.log(await result.stdoutText);
 ```
 
-### Error handling
+<!-- ### Error handling -->
+
+### Manejo de errores
 
 ```javascript
 import { PHP } from '@php-wasm/universal';
@@ -576,9 +646,16 @@ try {
 }
 ```
 
-## Performance considerations
+<!-- ## Performance considerations -->
 
--   **Reuse PHP instances**: Creating a new PHP instance is expensive. Reuse the same instance when possible.
--   **Batch operations**: Group multiple file operations together rather than running separate scripts.
--   **Memory management**: Large files may impact performance. Consider streaming for big datasets.
--   **Caching**: Cache compiled PHP scripts and frequently accessed data.
+## Consideraciones de rendimiento
+
+<!-- -   **Reuse PHP instances**: Creating a new PHP instance is expensive. Reuse the same instance when possible. -->
+<!-- -   **Batch operations**: Group multiple file operations together rather than running separate scripts. -->
+<!-- -   **Memory management**: Large files may impact performance. Consider streaming for big datasets. -->
+<!-- -   **Caching**: Cache compiled PHP scripts and frequently accessed data. -->
+
+-   **Reutiliza instancias PHP**: Crear una nueva instancia PHP es costoso. Reutiliza la misma instancia cuando sea posible.
+-   **Operaciones por lotes**: Agrupa múltiples operaciones de archivos juntas en lugar de ejecutar scripts separados.
+-   **Gestión de memoria**: Los archivos grandes pueden impactar el rendimiento. Considera streaming para grandes conjuntos de datos.
+-   **Caché**: Almacena en caché scripts PHP compilados y datos accedidos frecuentemente.

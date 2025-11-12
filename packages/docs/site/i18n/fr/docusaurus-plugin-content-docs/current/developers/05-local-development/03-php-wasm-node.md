@@ -1,22 +1,36 @@
 ---
 title: php-wasm/node
 slug: /developers/local-development/php-wasm-node
-description: WordPress Playground brings WebAssembly-powered PHP to Node.js for server-side execution, data processing, and testing without a native install.
+description: WordPress Playground apporte PHP propulsé par WebAssembly à Node.js pour l'exécution côté serveur, le traitement de données et les tests sans installation native.
 ---
 
-# Using WordPress Playground in Node.js
+<!-- # Using WordPress Playground in Node.js -->
 
-As a WebAssembly project, you can also use WordPress Playground in Node.js.
+# Utiliser WordPress Playground dans Node.js
 
-If you need low-level control over the underlying WebAssembly PHP build, take a look at the [@php-wasm/node package](https://npmjs.org/@php-wasm/node) which ships the PHP WebAssembly runtime. This package is at the core of all WordPress Playground tools for Node.js.
+<!-- As a WebAssembly project, you can also use WordPress Playground in Node.js. -->
 
-Consult the [complete list](/api/node) of Classes, Functions, Interfaces, and Type Aliases.
+En tant que projet WebAssembly, vous pouvez aussi utiliser WordPress Playground dans Node.js.
 
-## WebAssembly PHP for Node.js
+<!-- If you need low-level control over the underlying WebAssembly PHP build, take a look at the [@php-wasm/node package](https://npmjs.org/@php-wasm/node) which ships the PHP WebAssembly runtime. This package is at the core of all WordPress Playground tools for Node.js. -->
 
-This package ships WebAssembly PHP binaries and the JavaScript API optimized for Node.js. It uses the host file system directly and can access the network if you plug in a custom WS proxy.
+Si vous avez besoin d'un contrôle bas niveau sur la build WebAssembly de PHP, consultez le [paquet @php-wasm/node](https://npmjs.org/@php-wasm/node) qui fournit l'environnement d'exécution PHP WebAssembly. Ce paquet est au cœur de tous les outils WordPress Playground pour Node.js.
 
-### Basic usage
+<!-- Consult the [complete list](/api/node) of Classes, Functions, Interfaces, and Type Aliases. -->
+
+Consultez la [liste complète](/api/node) des classes, fonctions, interfaces et alias de types.
+
+<!-- ## WebAssembly PHP for Node.js -->
+
+## PHP WebAssembly pour Node.js
+
+<!-- This package ships WebAssembly PHP binaries and the JavaScript API optimized for Node.js. It uses the host file system directly and can access the network if you plug in a custom WS proxy. -->
+
+Ce paquet fournit les exécutables PHP WebAssembly et l'API JavaScript optimisée pour Node.js. Il utilise directement le système de fichiers hôte et peut accéder au réseau si vous branchez un proxy WS personnalisé.
+
+<!-- ### Basic usage -->
+
+### Utilisation de base
 
 ```javascript
 import { PHP } from '@php-wasm/universal';
@@ -29,22 +43,38 @@ const output = await php.runStream({
 console.log(await output.stdoutText);
 ```
 
-## Use cases
+<!-- ## Use cases -->
 
-Run PHP inside Node.js without a native PHP install. Allow developer to produce the following solutions:
+## Cas d'usage
 
--   CI/CD jobs and developer tooling.
--   Support education and WordPress workflows: Power interactive tutorials, sandboxes, and coding challenges.
--   Generate content and prototype server behavior.
--   Render HTML using PHP templates, and quickly stand up mock API endpoints to simulate requests.
+<!-- Run PHP inside Node.js without a native PHP install. Allow developer to produce the following solutions: -->
+<!-- - CI/CD jobs and developer tooling. -->
+<!-- - Support education and WordPress workflows: Power interactive tutorials, sandboxes, and coding challenges. -->
+<!-- - Generate content and prototype server behavior. -->
+<!-- - Render HTML using PHP templates, and quickly stand up mock API endpoints to simulate requests. -->
 
-## Practical demos
+Exécutez PHP dans Node.js sans installation native de PHP. Cela permet au développeur de produire les solutions suivantes :
 
-We will list some examples using the PHP-WASM package.
+-   Tâches CI/CD et outils de développement.
+-   Support pour l'éducation et les workflows WordPress : didacticiels interactifs, sandboxes et défis de code.
+-   Génération de contenu et prototypage du comportement serveur.
+-   Rendu HTML via des templates PHP et création rapide d'endpoints d'API simulés pour simuler des requêtes.
 
-### Demo 1: File system operations
+<!-- ## Practical demos -->
 
-Execute PHP scripts that interact with the file system:
+## Démonstrations pratiques
+
+<!-- We will list some examples using the PHP-WASM package. -->
+
+Nous listerons quelques exemples utilisant le paquet PHP-WASM.
+
+<!-- ### Demo 1: File system operations -->
+
+### Démo 1 : Opérations sur le système de fichiers
+
+<!-- Execute PHP scripts that interact with the file system: -->
+
+Exécutez des scripts PHP qui interagissent avec le système de fichiers :
 
 ```javascript
 import { PHP } from '@php-wasm/universal';
@@ -88,9 +118,13 @@ const result = await php.runStream({ scriptPath: '/app/index.php' });
 console.log(await result.stdoutText);
 ```
 
-### Demo 2: SQLite database operations
+<!-- ### Demo 2: SQLite database operations -->
 
-Use PHP's SQLite extension for data storage:
+### Démo 2 : Opérations SQLite
+
+<!-- Use PHP's SQLite extension for data storage: -->
+
+Utilisez l'extension SQLite de PHP pour le stockage des données :
 
 ```javascript
 import { PHP } from '@php-wasm/universal';
@@ -148,9 +182,13 @@ const dbExists = await php.fileExists('/data/app.db');
 console.log('\nDatabase persisted:', dbExists);
 ```
 
-### Demo 3: Processing uploaded files (ZIP archives)
+<!-- ### Demo 3: Processing uploaded files (ZIP archives) -->
 
-Process ZIP files using PHP's Libzip extension:
+### Démo 3 : Traitement de fichiers téléchargés (archives ZIP)
+
+<!-- Process ZIP files using PHP's Libzip extension: -->
+
+Traitez des fichiers ZIP avec l'extension Libzip de PHP :
 
 ```javascript
 import { PHP } from '@php-wasm/universal';
@@ -209,9 +247,13 @@ foreach ($files as $file) {
 console.log(await result.stdoutText);
 ```
 
-### Demo 4: HTTP request/response pattern
+<!-- ### Demo 4: HTTP request/response pattern -->
 
-Simulate web server behavior with request handlers:
+### Démo 4 : Modèle requête/réponse HTTP
+
+<!-- Simulate web server behavior with request handlers: -->
+
+Simulez le comportement d'un serveur web avec des gestionnaires de requêtes :
 
 ```javascript
 import { PHP } from '@php-wasm/universal';
@@ -284,9 +326,13 @@ const postResponse = await php.runStream({
 console.log('\\nPOST Response:', await postResponse.stdoutText);
 ```
 
-### Demo 5: Template rendering engine
+<!-- ### Demo 5: Template rendering engine -->
 
-Use PHP as a templating engine for dynamic content:
+### Démo 5 : Moteur de rendu de templates
+
+<!-- Use PHP as a templating engine for dynamic content: -->
+
+Utilisez PHP comme moteur de templates pour du contenu dynamique :
 
 ```javascript
 import { PHP } from '@php-wasm/universal';
@@ -359,9 +405,13 @@ console.log(await result.stdoutText);
 // Now you have rendered HTML that can be sent via email or saved
 ```
 
-### Demo 6: Real-time code execution and streaming
+<!-- ### Demo 6: Real-time code execution and streaming -->
 
-Process PHP output as it's generated:
+### Démo 6 : Exécution en temps réel et streaming
+
+<!-- Process PHP output as it's generated: -->
+
+Traitez la sortie PHP au fur et à mesure :
 
 ```javascript
 import { PHP } from '@php-wasm/universal';
@@ -400,11 +450,17 @@ streamedResponse.stdout.pipeTo(
 );
 ```
 
-## Integration patterns
+<!-- ## Integration patterns -->
 
-### Pattern 1: Express.js middleware
+## Modèles d'intégration
 
-Integrate PHP processing into an Express.js application:
+<!-- ### Pattern 1: Express.js middleware -->
+
+### Modèle 1 : Middleware Express.js
+
+<!-- Integrate PHP processing into an Express.js application: -->
+
+Intégrez l'exécution PHP dans une application Express.js :
 
 ```TypeScript
 import express from 'express';
@@ -440,9 +496,13 @@ app.listen(3000, () => {
 });
 ```
 
-### Pattern 2: Automated testing
+<!-- ### Pattern 2: Automated testing -->
 
-Create automated tests for PHP code:
+### Modèle 2 : Tests automatisés
+
+<!-- Create automated tests for PHP code: -->
+
+Créez des tests automatisés pour du code PHP :
 
 ```TypeScript
 import { describe, it, expect, beforeAll } from '@jest/globals';
@@ -488,9 +548,13 @@ describe('PHP Functions', () => {
 });
 ```
 
-### Pattern 3: Build tool integration
+<!-- ### Pattern 3: Build tool integration -->
 
-Use in build scripts with other Node.js tools:
+### Modèle 3 : Intégration aux outils de build
+
+<!-- Use in build scripts with other Node.js tools: -->
+
+Utilisez-le dans des scripts de build avec d'autres outils Node.js :
 
 ```javascript
 import { PHP } from '@php-wasm/universal';
@@ -529,9 +593,13 @@ echo "Documentation generated successfully!\\n";
 generateDocumentation().catch(console.error);
 ```
 
-## Advanced features
+<!-- ## Advanced features -->
 
-### Working with environment variables
+## Fonctionnalités avancées
+
+<!-- ### Working with environment variables -->
+
+### Travailler avec des variables d'environnement
 
 ```javascript
 import { PHP } from '@php-wasm/universal';
@@ -549,7 +617,9 @@ const result = await php.runStream({
 console.log(await result.stdoutText);
 ```
 
-### Error handling
+<!-- ### Error handling -->
+
+### Gestion des erreurs
 
 ```javascript
 import { PHP } from '@php-wasm/universal';
@@ -576,9 +646,16 @@ try {
 }
 ```
 
-## Performance considerations
+<!-- ## Performance considerations -->
 
--   **Reuse PHP instances**: Creating a new PHP instance is expensive. Reuse the same instance when possible.
--   **Batch operations**: Group multiple file operations together rather than running separate scripts.
--   **Memory management**: Large files may impact performance. Consider streaming for big datasets.
--   **Caching**: Cache compiled PHP scripts and frequently accessed data.
+## Considérations de performance
+
+<!-- -   **Reuse PHP instances**: Creating a new PHP instance is expensive. Reuse the same instance when possible. -->
+<!-- -   **Batch operations**: Group multiple file operations together rather than running separate scripts. -->
+<!-- -   **Memory management**: Large files may impact performance. Consider streaming for big datasets. -->
+<!-- -   **Caching**: Cache compiled PHP scripts and frequently accessed data. -->
+
+-   **Réutiliser les instances PHP** : créer une nouvelle instance PHP est coûteux. Réutilisez la même instance lorsque c'est possible.
+-   **Regrouper les opérations** : groupez plusieurs opérations de fichiers plutôt que d'exécuter des scripts séparés.
+-   **Gestion de la mémoire** : les fichiers volumineux peuvent impacter les performances. Envisagez le streaming pour de grands jeux de données.
+-   **Mise en cache** : mettez en cache les scripts PHP compilés et les données souvent consultées.
