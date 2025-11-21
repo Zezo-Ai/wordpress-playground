@@ -204,6 +204,9 @@ node --experimental-strip-types --experimental-transform-types --import ./packag
 Or this instead of the above:
 
 ```bash
+# Make sure you have the `nx` command available:
+npm install -g nx
+
 nx dev playground-cli server
 ```
 
