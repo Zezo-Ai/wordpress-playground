@@ -139,9 +139,8 @@ export function SiteInfoPanel({
 			const blueprint = JSON.parse(blueprintCode);
 
 			// Resolve runtime configuration from the new blueprint
-			const runtimeConfiguration = await resolveRuntimeConfiguration(
-				blueprint
-			);
+			const runtimeConfiguration =
+				await resolveRuntimeConfiguration(blueprint);
 
 			// Remove the current playground client to trigger cleanup
 			dispatch(removeClientInfo(site.slug));
@@ -360,7 +359,7 @@ export function SiteInfoPanel({
 															site.metadata
 																.whenCreated - 2
 														)
-												  )
+													)
 												: '';
 											switch (site.metadata.storage) {
 												case 'local-fs':
