@@ -164,6 +164,7 @@ export type SecondaryWorkerBootArgs = {
 	processIdSpaceLength: number;
 	trace: boolean;
 	nativeInternalDirPath: string;
+	withIntl?: boolean;
 	withXdebug?: boolean;
 	mountsBeforeWpInstall?: Array<Mount>;
 	mountsAfterWpInstall?: Array<Mount>;
@@ -474,6 +475,7 @@ export class PlaygroundCliBlueprintV2Worker extends PHPWorker {
 		processIdSpaceLength,
 		trace,
 		nativeInternalDirPath,
+		withIntl,
 		withXdebug,
 		onPHPInstanceCreated,
 		spawnHandler,
@@ -510,6 +512,7 @@ export class PlaygroundCliBlueprintV2Worker extends PHPWorker {
 							phpWasmInitOptions: { nativeInternalDirPath },
 						},
 						followSymlinks: allow?.includes('follow-symlinks'),
+						withIntl: withIntl,
 						withXdebug,
 					});
 				},
