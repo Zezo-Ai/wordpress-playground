@@ -9,6 +9,28 @@ All notable changes to this project are documented in this file by a CI job
 that runs on every NPM release. The file follows the [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 format.
 
+## [v3.0.25] (2025-12-16) 
+
+### Website
+
+- Blueprint Editor: Update the URL when typing. ([#2959](https://github.com/WordPress/wordpress-playground/pull/2959))
+
+### Bug Fixes
+
+- Fix npm trusted publisher by upgrading to Lerna 9 and npm 11.5.1+. ([#3052](https://github.com/WordPress/wordpress-playground/pull/3052))
+
+### Various
+
+- [CI] Fix flaky end-to-end test for blueprint share button. ([#3051](https://github.com/WordPress/wordpress-playground/pull/3051))
+- [CI] Restore GH_TOKEN for pushing to protected branch. ([#3049](https://github.com/WordPress/wordpress-playground/pull/3049))
+
+### Contributors
+
+The following contributors merged PRs in this release:
+
+@adamziel
+
+
 ## [v3.0.24] (2025-12-16) 
 
 ### Website
