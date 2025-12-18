@@ -40,44 +40,15 @@ export default defineConfig({
 		 * where the source file was located. Since everything gets bundled into
 		 * index.js at the dist root, we need to "climb out" of the source directory
 		 * structure. Rollup then normalizes '../foo' to './foo' in the output.
-		 *
-		 * Example for php_8_4.js:
-		 *   Source file: src/lib/get-php-loader-module.ts (2 levels deep: src/lib/)
-		 *   Input:       '../../public/php/jspi/php_8_4.js'
-		 *   slice(-3):   'php/jspi/php_8_4.js'
-		 *   With '../':  '../php/jspi/php_8_4.js'
-		 *   Output:      './php/jspi/php_8_4.js' (rollup normalizes for dist root)
 		 */
 		viteExternalDynamicImports([
 			{
-				// Source: src/lib/get-php-loader-module.ts (1 dir from src/)
-				// Input:      '../../public/php/jspi/php_8_4.js'
-				// slice(-3):  'php/jspi/php_8_4.js'
-				// With '../': '../php/jspi/php_8_4.js'
-				// Output:     './php/jspi/php_8_4.js'
-				regex: /php_\d_\d\.js$/,
-				transform: (specifier) =>
-					`../${specifier.split('/').slice(-3).join('/')}`,
-			},
-			{
-				// Source: src/lib/extensions/intl/get-intl-extension-module.ts (3 dirs from src/)
-				// Input:          '../../../../public/php/jspi/extensions/intl/8_4/intl.so'
-				// slice(-6):      'php/jspi/extensions/intl/8_4/intl.so'
-				// With '../../../': '../../../php/jspi/extensions/intl/8_4/intl.so'
-				// Output:         './php/jspi/extensions/intl/8_4/intl.so'
-				regex: /intl\.so$/,
-				transform: (specifier) =>
-					`../../../${specifier.split('/').slice(-6).join('/')}`,
-			},
-			{
-				// Source: src/lib/extensions/intl/with-intl.ts (3 dirs from src/)
-				// Input:          '../../../../public/shared/icu.dat'
-				// slice(-2):      'shared/icu.dat'
-				// With '../../../': '../../../shared/icu.dat'
-				// Output:         './shared/icu.dat'
+				// Source: src/lib/extensions/intl/with-intl.ts
+				// Input:  '../../../../public/shared/icu.dat'
+				// Output: './shared/icu.dat' (Vite copies public/ to dist output)
 				regex: /icu\.dat$/,
 				transform: (specifier) =>
-					`../../../${specifier.split('/').slice(-2).join('/')}`,
+					`./${specifier.split('/').slice(-2).join('/')}`,
 			},
 		]),
 		...viteGlobalExtensions,
@@ -95,10 +66,10 @@ export default defineConfig({
 		},
 		sourcemap: true,
 		rollupOptions: {
-			// Don't bundle the PHP loaders in the final build. See
-			// the viteExternalDynamicImports plugin above.
+			// Don't bundle the PHP loaders or extensions in the final build.
+			// PHP loaders are now in version-specific packages like @php-wasm/web-8-4
 			external: [
-				/php_\d_\d.js$/,
+				/^@php-wasm\/web-\d+-\d+$/,
 				/icu.dat$/,
 				/intl.so$/,
 				...getExternalModules(),
