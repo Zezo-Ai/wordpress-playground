@@ -1,5 +1,5 @@
 {
-	"$schema": "node_modules/lerna/schemas/lerna-schema.json",
-	"version": "3.0.32",
-	"useNx": true
+  "$schema": "node_modules/lerna/schemas/lerna-schema.json",
+  "version": "3.0.33",
+  "useNx": true
 }
