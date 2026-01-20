@@ -9,7 +9,10 @@ import fs from 'fs';
 import { getPHPLoaderModule } from '.';
 import { withNetworking } from './networking/with-networking';
 import type { FileLockManager } from './file-lock-manager';
-import { withXdebug, type XdebugOptions } from './extensions/xdebug/with-xdebug';
+import {
+	withXdebug,
+	type XdebugOptions,
+} from './extensions/xdebug/with-xdebug';
 import { withIntl } from './extensions/intl/with-intl';
 import { joinPaths } from '@php-wasm/util';
 import type { Promised } from '@php-wasm/util';
@@ -23,7 +26,7 @@ export interface PHPLoaderOptions {
 	withIntl?: boolean;
 }
 
-type PHPLoaderOptionsForNode = PHPLoaderOptions & {
+export type PHPLoaderOptionsForNode = PHPLoaderOptions & {
 	emscriptenOptions?: EmscriptenOptions & {
 		/**
 		 * The process ID for the PHP runtime.

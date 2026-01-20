@@ -50,7 +50,6 @@ export class BlueprintsV2Handler {
 			consumeAPI(phpPort);
 
 		await playground.useFileLockManager(fileLockManagerPort);
-
 		const workerBootArgs = {
 			...this.args,
 			phpVersion: this.phpVersion,
