@@ -5,7 +5,12 @@ import type {
 	SecondaryWorkerBootArgs,
 } from './worker-thread-v2';
 import type { MessagePort as NodeMessagePort } from 'worker_threads';
-import type { RunCLIArgs, SpawnedWorker, WorkerType } from '../run-cli';
+import {
+	type RunCLIArgs,
+	type SpawnedWorker,
+	type WorkerType,
+	mergeDefinedConstants,
+} from '../run-cli';
 import type { CLIOutput } from '../cli-output';
 
 /**
@@ -68,6 +73,7 @@ export class BlueprintsV2Handler {
 			nativeInternalDirPath,
 			mountsBeforeWpInstall: this.args['mount-before-install'] || [],
 			mountsAfterWpInstall: this.args.mount || [],
+			constants: mergeDefinedConstants(this.args),
 		};
 
 		await playground.bootAndSetUpInitialWorker(workerBootArgs);
@@ -102,6 +108,7 @@ export class BlueprintsV2Handler {
 			nativeInternalDirPath,
 			mountsBeforeWpInstall: this.args['mount-before-install'] || [],
 			mountsAfterWpInstall: this.args.mount || [],
+			constants: mergeDefinedConstants(this.args),
 		};
 
 		await playground.bootWorker(workerBootArgs);

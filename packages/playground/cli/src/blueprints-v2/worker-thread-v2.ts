@@ -139,6 +139,11 @@ export type PrimaryWorkerBootArgs = Omit<
 	nativeInternalDirPath: string;
 	mountsBeforeWpInstall?: Array<Mount>;
 	mountsAfterWpInstall?: Array<Mount>;
+	/**
+	 * PHP constants to define via php.defineConstant().
+	 * Process-specific, set for each PHP instance.
+	 */
+	constants?: Record<string, string | number | boolean | null>;
 };
 
 type WorkerRunBlueprintArgs = Omit<
@@ -222,10 +227,9 @@ export class PlaygroundCliBlueprintV2Worker extends PHPWorker {
 	}
 
 	async bootAndSetUpInitialWorker(args: PrimaryWorkerBootArgs) {
+		// Start with CLI-provided constants (if any)
 		const constants = {
-			WP_DEBUG: true,
-			WP_DEBUG_LOG: true,
-			WP_DEBUG_DISPLAY: false,
+			...(args.constants || {}),
 		};
 		const requestHandlerOptions: WorkerBootRequestHandlerOptions = {
 			...args,
