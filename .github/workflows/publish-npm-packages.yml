@@ -23,7 +23,7 @@ jobs:
     release:
         # Only run this workflow from the trunk branch and when it's triggered by a Playground maintainer
         if: >
-            github.ref == 'refs/heads/trunk' && (
+            (
               github.actor == 'adamziel' ||
               github.actor == 'dmsnell' ||
               github.actor == 'bgrgicak' ||
