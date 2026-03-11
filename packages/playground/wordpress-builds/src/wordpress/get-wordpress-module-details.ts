@@ -48,21 +48,21 @@ export function getWordPressModuleDetails(wpVersion: string = "6.9"): { size: nu
 		case '6.8':
 			/** @ts-ignore */
 			return {
-				size: 24743772,
+				size: 24753361,
 				url: url_6_8,
 			};
 			
 		case '6.7':
 			/** @ts-ignore */
 			return {
-				size: 24594721,
+				size: 24604297,
 				url: url_6_7,
 			};
 			
 		case '6.6':
 			/** @ts-ignore */
 			return {
-				size: 18386194,
+				size: 18395818,
 				url: url_6_6,
 			};
 			
