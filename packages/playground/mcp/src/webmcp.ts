@@ -10,12 +10,12 @@ import type { PlaygroundClient } from '@wp-playground/remote';
 import {
 	toolDefinitions,
 	getSiteToolDefinitions,
-	presentStorage,
+	formatStorageLabel,
 	paramsToJsonSchema,
 	stringifyError,
 } from './tools/tool-definitions';
 import { toolExecutors, createToolClient } from './tools/tool-executors';
-import type { PlaygroundConfig } from './bridge-client';
+import type { PlaygroundBridgeConfig } from './bridge-client';
 
 const siteToolDefinitions = getSiteToolDefinitions();
 
@@ -55,8 +55,8 @@ declare global {
 
 let registrationController: AbortController | null = null;
 
-function getActiveSite(config: PlaygroundConfig) {
-	const sites = config.getSites();
+function getActiveSite(config: PlaygroundBridgeConfig) {
+	const sites = config.list();
 	const active = sites.find((s) => s.isActive);
 	if (!active) {
 		throw new Error('No active Playground site');
@@ -64,7 +64,7 @@ function getActiveSite(config: PlaygroundConfig) {
 	return active;
 }
 
-export function registerWebMCPTools(config: PlaygroundConfig): void {
+export function registerWebMCPTools(config: PlaygroundBridgeConfig): void {
 	if (typeof navigator === 'undefined' || !navigator.modelContext) {
 		return;
 	}
@@ -75,10 +75,9 @@ export function registerWebMCPTools(config: PlaygroundConfig): void {
 	const signal = registrationController.signal;
 
 	function getActiveClient(): PlaygroundClient {
-		const site = getActiveSite(config);
-		const client = config.getPlaygroundClient(site.slug);
+		const client = config.getClient();
 		if (!client) {
-			throw new Error(`No client for active site: ${site.slug}`);
+			throw new Error('No client for active site');
 		}
 		return client;
 	}
@@ -118,14 +117,14 @@ export function registerWebMCPTools(config: PlaygroundConfig): void {
 }
 
 function createSiteManagementTools(
-	config: PlaygroundConfig
+	config: PlaygroundBridgeConfig
 ): ModelContextTool[] {
 	const listDef = siteToolDefinitions['playground_list_sites'];
-	const saveDef = siteToolDefinitions['playground_save_site'];
+	const saveDef = siteToolDefinitions['playground_save_in_browser'];
 	const renameDef = siteToolDefinitions['playground_rename_site'];
 	const websiteUrlDef = siteToolDefinitions['playground_get_website_url'];
 
-	const result: ModelContextTool[] = [
+	return [
 		{
 			name: 'playground_list_sites',
 			description: listDef.description,
@@ -134,10 +133,10 @@ function createSiteManagementTools(
 				try {
 					return {
 						connectedTabs: 1,
-						sites: config.getSites().map((s) => ({
+						sites: config.list().map((s) => ({
 							siteId: s.slug,
 							name: s.name,
-							storage: presentStorage(s.storage),
+							storage: formatStorageLabel(s.storage),
 							isActive: s.isActive,
 						})),
 					};
@@ -148,17 +147,14 @@ function createSiteManagementTools(
 				}
 			},
 		},
-	];
-
-	if (config.saveSite) {
-		result.push({
-			name: 'playground_save_site',
+		{
+			name: 'playground_save_in_browser',
 			description: saveDef.description,
 			annotations: saveDef.annotations,
 			execute: async () => {
 				try {
 					const site = getActiveSite(config);
-					const storage = presentStorage(site.storage);
+					const storage = formatStorageLabel(site.storage);
 					if (storage !== 'temporary') {
 						return {
 							success: true,
@@ -168,13 +164,13 @@ function createSiteManagementTools(
 							storage,
 						};
 					}
-					const saved = await config.saveSite!(site.slug);
+					const saved = await config.saveInBrowser();
 					return {
 						success: true,
 						alreadySaved: false,
 						siteId: saved.slug,
-						name: site.name,
-						storage: presentStorage(saved.storage),
+						name: site.name ?? saved.slug,
+						storage: formatStorageLabel(saved.storage),
 					};
 				} catch (error) {
 					return {
@@ -182,46 +178,45 @@ function createSiteManagementTools(
 					};
 				}
 			},
-		});
-	}
-
-	if (config.renameSite) {
-		result.push({
+		},
+		{
 			name: 'playground_rename_site',
 			description: renameDef.description,
 			inputSchema: paramsToJsonSchema(renameDef.params),
 			annotations: renameDef.annotations,
 			execute: async (input) => {
 				try {
-					const site = getActiveSite(config);
 					const newName = input['newName'] as string;
-					await config.renameSite!(site.slug, newName);
-					return { success: true, siteId: site.slug, newName };
+					const sites = config.list();
+					const activeSite = sites.find((s) => s.isActive);
+					await config.rename(newName);
+					return {
+						success: true,
+						siteId: activeSite?.slug,
+						newName,
+					};
 				} catch (error) {
 					return {
 						error: `${renameDef.errorPrefix}: ${stringifyError(error)}`,
 					};
 				}
 			},
-		});
-	}
-
-	result.push({
-		name: 'playground_get_website_url',
-		description: websiteUrlDef.description,
-		annotations: websiteUrlDef.annotations,
-		execute: async () => {
-			try {
-				return {
-					url: window.location.href,
-				};
-			} catch (error) {
-				return {
-					error: `${websiteUrlDef.errorPrefix}: ${stringifyError(error)}`,
-				};
-			}
 		},
-	});
-
-	return result;
+		{
+			name: 'playground_get_website_url',
+			description: websiteUrlDef.description,
+			annotations: websiteUrlDef.annotations,
+			execute: async () => {
+				try {
+					return {
+						url: window.location.href,
+					};
+				} catch (error) {
+					return {
+						error: `${websiteUrlDef.errorPrefix}: ${stringifyError(error)}`,
+					};
+				}
+			},
+		},
+	];
 }

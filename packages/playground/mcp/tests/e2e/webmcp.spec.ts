@@ -127,7 +127,7 @@ test('WebMCP registers all tools', async ({ webmcpPage }) => {
 		'playground_read_file',
 		'playground_rename_site',
 		'playground_request',
-		'playground_save_site',
+		'playground_save_in_browser',
 		'playground_write_file',
 	]);
 });
@@ -212,10 +212,12 @@ test('WebMCP playground_list_sites returns sites', async ({ webmcpPage }) => {
 	expect(site.isActive).toBe(true);
 });
 
-test('WebMCP playground_save_site saves a site', async ({ webmcpPage }) => {
+test('WebMCP playground_save_in_browser saves a site', async ({
+	webmcpPage,
+}) => {
 	const result = await webmcpPage.evaluate(async () => {
 		const executors = (window as any).__webmcpExecutors;
-		return await executors['playground_save_site']({});
+		return await executors['playground_save_in_browser']({});
 	});
 	expect(result.success).toBe(true);
 	expect(result.siteId).toBeTruthy();
@@ -225,6 +227,12 @@ test('WebMCP playground_save_site saves a site', async ({ webmcpPage }) => {
 });
 
 test('WebMCP playground_rename_site renames a site', async ({ webmcpPage }) => {
+	// Save the site first — temporary sites cannot be renamed.
+	await webmcpPage.evaluate(async () => {
+		const executors = (window as any).__webmcpExecutors;
+		return await executors['playground_save_in_browser']({});
+	});
+
 	const result = await webmcpPage.evaluate(async () => {
 		const executors = (window as any).__webmcpExecutors;
 		return await executors['playground_rename_site']({
