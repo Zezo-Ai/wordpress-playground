@@ -3,7 +3,11 @@ import { journalFSEvents, replayFSJournal } from '@php-wasm/fs-journal';
 import type { EmscriptenDownloadMonitor } from '@php-wasm/progress';
 import { setURLScope } from '@php-wasm/scopes';
 import { joinPaths } from '@php-wasm/util';
-import type { SyncProgressCallback, TCPOverFetchOptions } from '@php-wasm/web';
+import type {
+	DirectoryHandleMount,
+	SyncProgressCallback,
+	TCPOverFetchOptions,
+} from '@php-wasm/web';
 import type { MountDevice } from '@wp-playground/storage';
 import {
 	createDirectoryHandleMountHandler,
@@ -105,7 +109,9 @@ export abstract class PlaygroundWorkerEndpoint extends PHPWorker {
 	blueprintMessageListeners: Array<(message: any) => void | Promise<void>> =
 		[];
 
-	unmounts: Record<string, () => any> = {};
+	unmounts: Record<string, () => any> = createNullPrototypeRecord();
+	private opfsMounts: Record<string, DirectoryHandleMount> =
+		createNullPrototypeRecord();
 
 	private networkTransport: WordPressFetchNetworkTransport | undefined;
 
@@ -401,29 +407,51 @@ export abstract class PlaygroundWorkerEndpoint extends PHPWorker {
 	}
 
 	async hasOpfsMount(mountpoint: string) {
-		return mountpoint in this.unmounts;
+		return hasOwnProperty(this.opfsMounts, mountpoint);
 	}
 
 	async mountOpfs(
 		options: MountDescriptor,
 		onProgress?: SyncProgressCallback
 	) {
-		const handle = await directoryHandleFromMountDevice(options.device);
 		const php = this.__internal_getPHP()!;
-		this.unmounts[options.mountpoint] = await php.mount(
-			options.mountpoint,
-			createDirectoryHandleMountHandler(handle, {
-				initialSync: {
-					onProgress,
-					direction: options.initialSyncDirection,
-				},
-			})
-		);
+		await this.mountOpfsIntoPhp(php, options, onProgress);
+	}
+
+	async flushOpfs(mountpoint: string) {
+		const opfsMount = this.opfsMounts[mountpoint];
+		if (opfsMount === undefined) {
+			throw new Error(`No OPFS mount found at "${mountpoint}".`);
+		}
+		await opfsMount.flush();
 	}
 
 	async unmountOpfs(mountpoint: string) {
-		this.unmounts[mountpoint]();
-		delete this.unmounts[mountpoint];
+		const opfsMount = this.opfsMounts[mountpoint];
+		const unmount = this.unmounts[mountpoint];
+		if (opfsMount === undefined || unmount === undefined) {
+			throw new Error(`No OPFS mount found at "${mountpoint}".`);
+		}
+		let flushError: unknown;
+		try {
+			await opfsMount.flush();
+		} catch (error) {
+			flushError = error;
+		}
+		try {
+			await unmount();
+		} catch (error) {
+			if (flushError === undefined) {
+				throw error;
+			}
+			logger.error(error);
+		} finally {
+			delete this.unmounts[mountpoint];
+			delete this.opfsMounts[mountpoint];
+		}
+		if (flushError !== undefined) {
+			throw flushError;
+		}
 	}
 
 	async backfillStaticFilesRemovedFromMinifiedBuild() {
@@ -473,4 +501,53 @@ export abstract class PlaygroundWorkerEndpoint extends PHPWorker {
 	async replayFSJournal(events: FilesystemOperation[]) {
 		return replayFSJournal(this.__internal_getPHP()!, events);
 	}
+
+	protected async mountOpfsIntoPhp(
+		php: PHP,
+		options: MountDescriptor,
+		onProgress?: SyncProgressCallback
+	) {
+		if (
+			hasOwnProperty(this.opfsMounts, options.mountpoint) ||
+			hasOwnProperty(this.unmounts, options.mountpoint)
+		) {
+			throw new Error(
+				`OPFS mount already exists at "${options.mountpoint}".`
+			);
+		}
+		const handle = await directoryHandleFromMountDevice(options.device);
+		let opfsMount: DirectoryHandleMount | undefined;
+		const unmount = await php.mount(
+			options.mountpoint,
+			createDirectoryHandleMountHandler(handle, {
+				initialSync: {
+					onProgress,
+					direction: options.initialSyncDirection,
+				},
+				onMount(mount) {
+					opfsMount = mount;
+				},
+			})
+		);
+		if (opfsMount === undefined) {
+			try {
+				await unmount();
+			} catch (error) {
+				logger.error(error);
+			}
+			throw new Error(
+				`Could not create an OPFS mount at "${options.mountpoint}".`
+			);
+		}
+		this.unmounts[options.mountpoint] = unmount;
+		this.opfsMounts[options.mountpoint] = opfsMount;
+	}
+}
+
+function createNullPrototypeRecord<T>() {
+	return Object.create(null) as Record<string, T>;
+}
+
+function hasOwnProperty(object: object, property: PropertyKey) {
+	return Object.prototype.hasOwnProperty.call(object, property);
 }
