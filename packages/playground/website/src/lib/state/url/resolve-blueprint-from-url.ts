@@ -14,6 +14,9 @@ import { parseBlueprint, isMcpServerEnabled } from './router';
 import { OverlayFilesystem, InMemoryFilesystem } from '@wp-playground/storage';
 import { RecommendedPHPVersion } from '@wp-playground/common';
 import { logger } from '@php-wasm/logger';
+import { decodeBlueprintHash } from './decode-blueprint-hash';
+
+export { decodeBlueprintHash };
 
 export type BlueprintSource =
 	| {
@@ -66,7 +69,7 @@ export async function resolveBlueprintFromURL(
 	defaultBlueprint?: string
 ): Promise<ResolvedBlueprint> {
 	const query = url.searchParams;
-	const fragment = decodeURI(url.hash || '#').substring(1);
+	const fragment = decodeBlueprintHash(url.hash || '#');
 
 	/**
 	 * If the URL has no parameters or fragment, and a default blueprint is provided,

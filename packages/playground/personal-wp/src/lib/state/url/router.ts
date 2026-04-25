@@ -26,16 +26,46 @@ interface QueryAPIParams {
 	'page-title'?: string;
 }
 
+/**
+ * Parses a blueprint string into a blueprint object. Accepts plain
+ * JSON or base64-encoded JSON. On failure, throws an `Error` whose
+ * message includes the underlying JSON parse error and, when `%XX`
+ * escapes are still present, a hint that the URL fragment may have
+ * been double-encoded.
+ */
 export function parseBlueprint(rawData: string) {
+	const errors: unknown[] = [];
 	try {
-		try {
-			return JSON.parse(rawData);
-		} catch {
-			return JSON.parse(decodeBase64ToString(rawData));
-		}
-	} catch {
-		throw new Error('Invalid blueprint');
+		return JSON.parse(rawData);
+	} catch (e) {
+		errors.push(e);
 	}
+	try {
+		return JSON.parse(decodeBase64ToString(rawData));
+	} catch (e) {
+		errors.push(e);
+	}
+	throw new Error(formatInvalidBlueprintError(rawData, errors));
+}
+
+function formatInvalidBlueprintError(rawData: string, errors: unknown[]): string {
+	const looksLikeBase64 = /^[A-Za-z0-9+/=]+$/.test(rawData.trim());
+	// Prefer the base64-decode-then-parse error if the input looks
+	// base64-shaped; otherwise the plain JSON.parse error is the more
+	// useful signal.
+	const primary = looksLikeBase64 && errors[1] ? errors[1] : errors[0];
+	const detail =
+		primary instanceof Error ? primary.message : String(primary ?? '');
+	const sentences = ['Invalid blueprint'];
+	if (detail) {
+		sentences.push(detail);
+	}
+	if (/%[0-9A-Fa-f]{2}/.test(rawData)) {
+		sentences.push(
+			'The input still contains %XX escapes after decoding, so the URL fragment may have been double-encoded'
+		);
+	}
+	return sentences.join('. ') + '.';
 }
 
 export class PlaygroundRoute {
