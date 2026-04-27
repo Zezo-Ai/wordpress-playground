@@ -11,6 +11,10 @@ const existingContent = fs.readFileSync(destinationPath, 'utf-8');
 const frontmatterRegex = /^---\n([\s\S]*?)\n---/;
 const existingFrontmatter = existingContent.match(frontmatterRegex)?.[0] || '';
 
+// The destination file's frontmatter sets `format: md` so Docusaurus parses
+// it as plain CommonMark instead of MDX. Without that, unescaped `{...}` or
+// `<...>` in PR titles (e.g. `@php-wasm/{web,node}-5-2`) would be treated as
+// JSX and crash the build.
 const changelogWithFrontmatter = existingFrontmatter + '\n\n' + changelog;
 
 // Write the modified changelog to the destination file
