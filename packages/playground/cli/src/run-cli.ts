@@ -956,21 +956,6 @@ export interface RunCLIServer extends AsyncDisposable {
 	};
 }
 
-const bold = (text: string) =>
-	process.stdout.isTTY ? '\x1b[1m' + text + '\x1b[0m' : text;
-
-const red = (text: string) =>
-	process.stdout.isTTY ? '\x1b[31m' + text + '\x1b[0m' : text;
-
-const dim = (text: string) =>
-	process.stdout.isTTY ? `\x1b[2m${text}\x1b[0m` : text;
-
-const italic = (text: string) =>
-	process.stdout.isTTY ? `\x1b[3m${text}\x1b[0m` : text;
-
-const highlight = (text: string) =>
-	process.stdout.isTTY ? `\x1b[33m${text}\x1b[0m` : text;
-
 // These overloads are declared for convenience so runCLI() can return
 // different things depending on the CLI command without forcing the
 // callers (mostly automated tests) to check return values.
@@ -1001,8 +986,13 @@ export async function runCLI(args: RunCLIArgs): Promise<RunCLIServer | void> {
 		RemoteAPI<PlaygroundCliWorker>
 	> = new Map();
 
+	// Create CLI output handler
+	const cliOutput = new CLIOutput({
+		verbosity: args.verbosity || 'normal',
+	});
+
 	if (args.command === 'start') {
-		args = expandStartCommandArgs(args);
+		args = expandStartCommandArgs(args, cliOutput);
 	}
 
 	if (args.autoMount !== undefined) {
@@ -1077,11 +1067,6 @@ export async function runCLI(args: RunCLIArgs): Promise<RunCLIServer | void> {
 			},
 		];
 	}
-
-	// Create CLI output handler
-	const cliOutput = new CLIOutput({
-		verbosity: args.verbosity || 'normal',
-	});
 
 	// Display banner for server commands
 	if (args.command === 'server') {
@@ -1227,12 +1212,14 @@ export async function runCLI(args: RunCLIArgs): Promise<RunCLIServer | void> {
 						pathSkippings: [...DEFAULT_PATH_SKIPPINGS],
 					});
 
-					console.log(bold(`Xdebug configured successfully`));
-					console.log(
-						highlight('Playground source root: ') +
+					cliOutput.print(
+						cliOutput.bold(`Xdebug configured successfully`)
+					);
+					cliOutput.print(
+						cliOutput.highlight('Playground source root: ') +
 							`.playground-xdebug-root` +
-							italic(
-								dim(
+							cliOutput.italic(
+								cliOutput.dim(
 									` – you can set breakpoints and preview Playground's VFS structure in there.`
 								)
 							)
@@ -1280,87 +1267,98 @@ export async function runCLI(args: RunCLIArgs): Promise<RunCLIServer | void> {
 							const hasPhpStorm = ides.includes('phpstorm');
 							const configFiles = Object.values(modifiedConfig);
 
-							console.log('');
+							cliOutput.print('');
 
 							if (configFiles.length > 0) {
-								console.log(
-									bold(`Xdebug configured successfully`)
+								cliOutput.print(
+									cliOutput.bold(
+										`Xdebug configured successfully`
+									)
 								);
-								console.log(
-									highlight(`Updated IDE config: `) +
-										configFiles.join(' ')
+								cliOutput.print(
+									cliOutput.highlight(
+										`Updated IDE config: `
+									) + configFiles.join(' ')
 								);
-								console.log(
-									highlight('Playground source root: ') +
+								cliOutput.print(
+									cliOutput.highlight(
+										'Playground source root: '
+									) +
 										`.playground-xdebug-root` +
-										italic(
-											dim(
+										cliOutput.italic(
+											cliOutput.dim(
 												` – you can set breakpoints and preview Playground's VFS structure in there.`
 											)
 										)
 								);
 							} else {
-								console.log(
-									bold(`Xdebug configuration failed.`)
+								cliOutput.print(
+									cliOutput.bold(
+										`Xdebug configuration failed.`
+									)
 								);
-								console.log(
+								cliOutput.print(
 									'No IDE-specific project settings directory was found in the current working directory.'
 								);
 							}
 
-							console.log('');
+							cliOutput.print('');
 
 							if (hasVSCode && modifiedConfig['vscode']) {
-								console.log(
-									bold('VS Code / Cursor instructions:')
+								cliOutput.print(
+									cliOutput.bold(
+										'VS Code / Cursor instructions:'
+									)
 								);
-								console.log(
+								cliOutput.print(
 									'  1. Ensure you have installed an IDE extension for PHP Debugging'
 								);
-								console.log(
-									`     (The ${bold('PHP Debug')} extension by ${bold(
+								cliOutput.print(
+									`     (The ${cliOutput.bold('PHP Debug')} extension by ${cliOutput.bold(
 										'Xdebug'
 									)} has been a solid option)`
 								);
-								console.log(
+								cliOutput.print(
 									'  2. Open the Run and Debug panel on the left sidebar'
 								);
-								console.log(
-									`  3. Select "${italic(
+								cliOutput.print(
+									`  3. Select "${cliOutput.italic(
 										IDEConfigName
 									)}" from the dropdown`
 								);
-								console.log('  3. Click "start debugging"');
-								console.log(
+								cliOutput.print(' 4. Click "start debugging"');
+								cliOutput.print(
 									'  5. Set a breakpoint. For example, in .playground-xdebug-root/wordpress/index.php'
 								);
-								console.log(
+								cliOutput.print(
 									'  6. Visit Playground in your browser to hit the breakpoint'
 								);
 								if (hasPhpStorm) {
-									console.log('');
+									cliOutput.print('');
 								}
 							}
 
 							if (hasPhpStorm && modifiedConfig['phpstorm']) {
-								console.log(bold('PhpStorm instructions:'));
-								console.log(
-									`  1. Choose "${italic(
+								cliOutput.print(
+									cliOutput.bold('PhpStorm instructions:')
+								);
+								cliOutput.print(
+									`  1. Choose "${cliOutput.italic(
 										IDEConfigName
 									)}" debug configuration in the toolbar`
 								);
-								console.log(
-									'  2. Click the debug button (bug icon)`'
+								cliOutput.print(
+									'  2. Click the debug button (bug icon)'
 								);
-								console.log(
+								cliOutput.print(
 									'  3. Set a breakpoint. For example, in .playground-xdebug-root/wordpress/index.php'
 								);
-								console.log(
+								cliOutput.print(
 									'  4. Visit Playground in your browser to hit the breakpoint'
 								);
 							}
 
-							console.log('');
+							cliOutput.print('');
 						} catch (error) {
 							throw new Error('Could not configure Xdebug', {
 								cause: error,
@@ -1797,7 +1795,8 @@ export async function runCLI(args: RunCLIArgs): Promise<RunCLIServer | void> {
  * for the `server` command.)
  */
 function expandStartCommandArgs(
-	args: RunCLIArgs & { reset?: boolean }
+	args: RunCLIArgs & { reset?: boolean },
+	cliOutput: CLIOutput
 ): RunCLIArgs {
 	let newArgs = { ...args, command: 'server' };
 
@@ -1860,10 +1859,10 @@ function expandStartCommandArgs(
 			'.wordpress-playground/sites',
 			currentSiteHash
 		);
-		console.log('Site files stored at:', hostPath);
+		cliOutput.print(`Site files stored at: ${hostPath}`);
 
 		if (existsSync(hostPath) && (args['reset'] as boolean)) {
-			console.log('Resetting site...');
+			cliOutput.print('Resetting site...');
 			rmdirSync(hostPath, { recursive: true });
 		}
 		mkdirSync(hostPath, { recursive: true });
@@ -1880,19 +1879,21 @@ function expandStartCommandArgs(
 				: // After that, reuse the WordPress installation from the initial run.
 					'install-from-existing-files-if-needed';
 	} else {
-		console.log('Site files stored at:', existingSiteRootMount?.hostPath);
+		cliOutput.print(
+			`Site files stored at: ${existingSiteRootMount?.hostPath}`
+		);
 		if (args['reset']) {
-			console.log(``);
-			console.log(
-				red(
+			cliOutput.print('');
+			cliOutput.print(
+				cliOutput.red(
 					`This site is not managed by Playground CLI and cannot be reset.`
 				)
 			);
-			console.log(
+			cliOutput.print(
 				`(It's not stored in the ~/.wordpress-playground/sites/<site-id> directory.)`
 			);
-			console.log(``);
-			console.log(
+			cliOutput.print('');
+			cliOutput.print(
 				`You may still remove the site's directory manually if you wish.`
 			);
 			process.exit(1);
