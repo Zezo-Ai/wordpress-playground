@@ -12,6 +12,28 @@ All notable changes to this project are documented in this file by a CI job
 that runs on every NPM release. The file follows the [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 format.
 
+## [v3.1.26] (2026-05-03) 
+
+### Documentation
+
+- [Docs] how to use @php-wasm/compile-extension from a downstream repo. ([#3595](https://github.com/WordPress/wordpress-playground/pull/3595))
+
+### PHP WebAssembly
+
+- [PHP] Support `extraFiles` for custom PHP extensions. ([#3580](https://github.com/WordPress/wordpress-playground/pull/3580))
+- [compile-extension] Emit the new PHPExtensionManifest shape, add --extra-files. ([#3596](https://github.com/WordPress/wordpress-playground/pull/3596))
+
+### Website
+
+- [php-snippet] Highlight PHP snippet reruns. ([#3594](https://github.com/WordPress/wordpress-playground/pull/3594))
+
+### Contributors
+
+The following contributors merged PRs in this release:
+
+@adamziel
+
+
 ## [v3.1.25] (2026-05-03) 
 
 ### Tools
