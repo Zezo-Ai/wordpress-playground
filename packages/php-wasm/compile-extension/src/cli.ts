@@ -8,6 +8,7 @@ import { hideBin } from 'yargs/helpers';
 
 import {
 	compileExtensionMatrix,
+	prepareExtensionBuildImages,
 	SupportedExtensionPHPVersions,
 } from './compile';
 import { detectExtensionName } from './detect';
@@ -20,14 +21,75 @@ const OptionsWithDashPrefixedValues = new Set([
 ]);
 
 export async function main(args = hideBin(process.argv)) {
-	const argv = await yargs(normalizeDashPrefixedOptionValues(args))
+	const argv = await parseCliArgs(args);
+	const workspaceRoot = findWorkspaceRoot(process.cwd());
+	const phpVersions = parseCsv(
+		argv['php-versions'] as string,
+		'php-versions'
+	);
+
+	if (argv['prepare-image']) {
+		const result = await prepareExtensionBuildImages({
+			workspaceRoot,
+			phpVersions,
+			jobs: argv['jobs'] as number | undefined,
+		});
+		console.log(
+			`Prepared ${result.images.length} PHP.wasm extension build images.`
+		);
+		for (const image of result.images) {
+			console.log(image.imageTag);
+		}
+		return;
+	}
+
+	const source = argv['source'] as string;
+	const sourceDir = path.resolve(workspaceRoot, source);
+	const name =
+		(argv['name'] as string | undefined) ??
+		(await detectExtensionName(sourceDir));
+	const configArgs = splitShellWords((argv['config-args'] as string) || '');
+	const extraFilesSpecs = (argv['extra-files'] as string[]).map(
+		parseExtraFilesSpec
+	);
+	const outDir = path.resolve(workspaceRoot, argv['out'] as string);
+	const extraFiles = await stageExtraFilesIntoOutDir(
+		extraFilesSpecs,
+		outDir,
+		workspaceRoot
+	);
+
+	const result = await compileExtensionMatrix({
+		workspaceRoot,
+		sourceDir,
+		outDir: argv['out'] as string,
+		name,
+		phpVersions,
+		extraCflags: argv['extra-cflags'] as string | undefined,
+		extraLdflags: argv['extra-ldflags'] as string | undefined,
+		configArgs,
+		optimize: argv['optimize'] as string,
+		jobs: argv['jobs'] as number | undefined,
+		extraFiles,
+	});
+
+	console.log(`Wrote ${result.artifacts.length} artifacts.`);
+	console.log(`Wrote ${result.manifestPath}.`);
+}
+
+export async function parseCliArgs(args: string[]) {
+	return await yargs(normalizeDashPrefixedOptionValues(args))
 		.scriptName('@php-wasm/compile-extension')
-		.usage('Usage: $0 --source <dir> [options]')
+		.usage('Usage: $0 [--source <dir> | --prepare-image] [options]')
 		.options({
 			source: {
 				type: 'string',
-				demandOption: true,
 				description: 'Extension source directory containing config.m4',
+			},
+			'prepare-image': {
+				type: 'boolean',
+				description:
+					'Build the Docker images for the requested PHP versions and exit without compiling an extension source directory.',
 			},
 			name: {
 				type: 'string',
@@ -74,46 +136,12 @@ export async function main(args = hideBin(process.argv)) {
 					'Stage a host directory under an absolute VFS root. Format: <hostDir>:<vfsRoot>. Files are copied next to the manifest and recorded in extraFiles.',
 			},
 		})
+		.conflicts('source', 'prepare-image')
+		.check(validateCliMode)
+		.exitProcess(false)
 		.strict()
 		.help()
 		.parse();
-
-	const workspaceRoot = findWorkspaceRoot(process.cwd());
-	const sourceDir = path.resolve(workspaceRoot, argv['source'] as string);
-	const name =
-		(argv['name'] as string | undefined) ??
-		(await detectExtensionName(sourceDir));
-	const phpVersions = parseCsv(
-		argv['php-versions'] as string,
-		'php-versions'
-	);
-	const configArgs = splitShellWords((argv['config-args'] as string) || '');
-	const extraFilesSpecs = (argv['extra-files'] as string[]).map(
-		parseExtraFilesSpec
-	);
-	const outDir = path.resolve(workspaceRoot, argv['out'] as string);
-	const extraFiles = await stageExtraFilesIntoOutDir(
-		extraFilesSpecs,
-		outDir,
-		workspaceRoot
-	);
-
-	const result = await compileExtensionMatrix({
-		workspaceRoot,
-		sourceDir,
-		outDir: argv['out'] as string,
-		name,
-		phpVersions,
-		extraCflags: argv['extra-cflags'] as string | undefined,
-		extraLdflags: argv['extra-ldflags'] as string | undefined,
-		configArgs,
-		optimize: argv['optimize'] as string,
-		jobs: argv['jobs'] as number | undefined,
-		extraFiles,
-	});
-
-	console.log(`Wrote ${result.artifacts.length} artifacts.`);
-	console.log(`Wrote ${result.manifestPath}.`);
 }
 
 if (isCliEntrypoint(import.meta.url)) {
@@ -139,6 +167,28 @@ export function normalizeDashPrefixedOptionValues(args: string[]): string[] {
 		normalized.push(arg);
 	}
 	return normalized;
+}
+
+export function validateCliMode(argv: {
+	source?: unknown;
+	'prepare-image'?: unknown;
+	prepareImage?: unknown;
+	help?: unknown;
+}): true {
+	if (argv.help) {
+		return true;
+	}
+	const hasSource = typeof argv.source === 'string' && argv.source.length > 0;
+	const prepareImage = Boolean(argv['prepare-image'] ?? argv.prepareImage);
+
+	if (hasSource && prepareImage) {
+		throw new Error('--source and --prepare-image cannot be used together.');
+	}
+	if (!hasSource && !prepareImage) {
+		throw new Error('--source is required unless --prepare-image is set.');
+	}
+
+	return true;
 }
 
 function parseCsv(value: string, name: string): string[] {
@@ -206,7 +256,12 @@ function findWorkspaceRoot(startDirectory: string): string {
 	let directory = path.resolve(startDirectory);
 	while (directory !== path.dirname(directory)) {
 		if (
-			existsSync(path.join(directory, 'packages/php-wasm/compile')) &&
+			existsSync(
+				path.join(
+					directory,
+					'packages/php-wasm/compile-extension/package.json'
+				)
+			) &&
 			existsSync(path.join(directory, 'nx.json'))
 		) {
 			return directory;
