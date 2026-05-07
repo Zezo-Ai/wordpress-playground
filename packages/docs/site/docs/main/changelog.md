@@ -12,6 +12,30 @@ All notable changes to this project are documented in this file by a CI job
 that runs on every NPM release. The file follows the [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 format.
 
+## [v3.1.29] (2026-05-07) 
+
+### Blueprints
+
+- Personal WP: Remove fake browser chrome, improve dependent tab handling. ([#3601](https://github.com/WordPress/wordpress-playground/pull/3601))
+
+### Tools
+
+
+#### PHP WebAssembly
+
+- [Package] Exclude unused dependencies when building `package.json` files. ([#3232](https://github.com/WordPress/wordpress-playground/pull/3232))
+
+### PHP WebAssembly
+
+- [PHP][Node] Export more side-module symbols to support the SQLite WASM extension (#3605). ([#3605](https://github.com/WordPress/wordpress-playground/pull/3605))
+
+### Contributors
+
+The following contributors merged PRs in this release:
+
+@adamziel @akirk @mho22
+
+
 ## [v3.1.28] (2026-05-05) 
 
 ### PHP WebAssembly
