@@ -4,6 +4,29 @@ All notable changes to this project are documented in this file by a CI job
 that runs on every NPM release. The file follows the [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 format.
 
+## [v3.1.34] (2026-05-18) 
+
+### PHP WebAssembly
+
+- [PHP.wasm] Fix sqlite_markdown extension loading. ([#3650](https://github.com/WordPress/wordpress-playground/pull/3650))
+- [PHP.wasm] Support web JSPI side module ABI exports. ([#3647](https://github.com/WordPress/wordpress-playground/pull/3647))
+- [codex] Use wp-extensions markdown editor release. ([#3648](https://github.com/WordPress/wordpress-playground/pull/3648))
+- [website] Add php-extension query parameter. ([#3645](https://github.com/WordPress/wordpress-playground/pull/3645))
+
+### Various
+
+
+#### Personal Playground
+
+- Personal WP: Improve app install dialog. ([#3652](https://github.com/WordPress/wordpress-playground/pull/3652))
+
+### Contributors
+
+The following contributors merged PRs in this release:
+
+@adamziel @akirk
+
+
 ## [v3.1.33] (2026-05-14) 
 
 ### PHP WebAssembly
