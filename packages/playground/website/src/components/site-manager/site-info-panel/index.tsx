@@ -9,12 +9,17 @@ import {
 	TabPanel,
 } from '@wordpress/components';
 import { chevronLeft, edit, moreVertical } from '@wordpress/icons';
+import { logger } from '@php-wasm/logger';
 import { getLogoDataURL, WordPressIcon } from '@wp-playground/components';
 import classNames from 'classnames';
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { getRelativeDate } from '../../../lib/get-relative-date';
 import { selectClientInfoBySiteSlug } from '../../../lib/state/redux/slice-clients';
 import type { SiteInfo } from '../../../lib/state/redux/slice-sites';
+import {
+	isAutosavedSite,
+	MAX_AUTOSAVED_SITES,
+} from '../../../lib/state/redux/slice-sites';
 import {
 	modalSlugs,
 	setActiveModal,
@@ -23,6 +28,7 @@ import {
 	setSiteSlugToRename,
 } from '../../../lib/state/redux/slice-ui';
 import { useAppDispatch, useAppSelector } from '../../../lib/state/redux/store';
+import { useSitesAPI } from '../../../lib/state/redux/site-management-api-middleware';
 import { usePlaygroundClientInfo } from '../../../lib/use-playground-client';
 import { SiteLogs } from '../../log-modal';
 import { OfflineNotice } from '../../offline-notice';
@@ -84,11 +90,13 @@ export function SiteInfoPanel({
 }) {
 	const offline = useAppSelector((state) => state.ui.offline);
 	const dispatch = useAppDispatch();
+	const sitesAPI = useSitesAPI();
 	// Load the last active tab for this site
 	const [initialTabName] = useState(() => {
 		const lastTab = getSiteLastTab(site.slug);
 		return lastTab || 'settings';
 	});
+	const [keepSiteError, setKeepSiteError] = useState<string>();
 
 	// Resolve documentRoot from playground client
 	const [documentRoot, setDocumentRoot] = useState<string | null>(null);
@@ -99,11 +107,24 @@ export function SiteInfoPanel({
 	};
 
 	const isTemporary = site.metadata.storage === 'none';
+	const isAutosaved = isAutosavedSite(site);
 
 	const removeSiteAndCloseMenu = (onClose: () => void) => {
 		dispatch(setSiteSlugToDelete(site.slug));
 		dispatch(setActiveModal(modalSlugs.DELETE_SITE));
 		onClose();
+	};
+	const keepSite = async () => {
+		setKeepSiteError(undefined);
+		try {
+			await sitesAPI.keep(site.slug);
+		} catch (error) {
+			logger.error(
+				'Error storing autosaved Playground permanently.',
+				error
+			);
+			setKeepSiteError('Could not store permanently. Please try again.');
+		}
 	};
 	const clientInfo = useAppSelector((state) =>
 		selectClientInfoBySiteSlug(state, site.slug)
@@ -281,6 +302,9 @@ export function SiteInfoPanel({
 														` ${createdAgo}`
 													);
 												case 'opfs':
+													if (isAutosaved) {
+														return `Autosaved in this browser ${createdAgo}. Removed after ${MAX_AUTOSAVED_SITES} newer autosaves unless saved.`;
+													}
 													return `Saved in this browser ${createdAgo}`;
 											}
 										})()}{' '}
@@ -288,6 +312,18 @@ export function SiteInfoPanel({
 								)}
 							</Flex>
 						</FlexItem>
+						{isAutosaved && (
+							<FlexItem className={css.siteInfoHeaderAction}>
+								<Button variant="primary" onClick={keepSite}>
+									Store permanently
+								</Button>
+							</FlexItem>
+						)}
+						{keepSiteError && (
+							<FlexItem className={css.siteInfoHeaderError}>
+								{keepSiteError}
+							</FlexItem>
+						)}
 						{mobileUi ? (
 							<FlexItem style={{ flexShrink: 0 }}>
 								<Button

@@ -619,13 +619,15 @@ test.describe('Database panel', () => {
 
 // Test saving playgrounds by default and when the "can-save" URL parameter is set to "no".
 test.describe('Save Status Indicator', () => {
-	test('should show "Unsaved Playground" status for temporary playgrounds', async ({
+	test('should show "Unsaved" status for temporary playgrounds', async ({
 		website,
 	}) => {
-		await website.goto('./');
+		await website.goto('./?storage=temp');
 		await website.ensureSiteManagerIsClosed();
 
-		const indicator = website.page.getByText('Unsaved Playground');
+		const indicator = website.page.getByRole('button', {
+			name: 'Unsaved',
+		});
 		await expect(indicator).toBeVisible();
 		await expect(indicator).toHaveCount(1);
 	});
@@ -633,7 +635,7 @@ test.describe('Save Status Indicator', () => {
 	test('should see save playground message in the Site Manager', async ({
 		website,
 	}) => {
-		await website.goto('./');
+		await website.goto('./?storage=temp');
 		await website.ensureSiteManagerIsOpen();
 
 		const indicator = website.page.getByText(
@@ -644,13 +646,15 @@ test.describe('Save Status Indicator', () => {
 		await expect(indicator).toHaveCount(1);
 	});
 
-	test('should not show "Unsaved Playground" status when "can-save=no" is set', async ({
+	test('should not show "Unsaved" status when "can-save=no" is set', async ({
 		website,
 	}) => {
 		await website.goto('./?can-save=no');
 		await website.ensureSiteManagerIsClosed();
 
-		const indicator = website.page.getByText('Unsaved Playground');
+		const indicator = website.page.getByRole('button', {
+			name: 'Unsaved',
+		});
 		await expect(indicator).toHaveCount(0);
 	});
 
@@ -664,6 +668,75 @@ test.describe('Save Status Indicator', () => {
 			'This is an Unsaved Playground. Your changes will be lost on page refresh.'
 		);
 		await expect(indicator).toHaveCount(0);
+	});
+
+	test('should keep a Playground saved after saving from the restore nudge state', async ({
+		website,
+		browserName,
+	}) => {
+		test.skip(
+			browserName !== 'chromium',
+			`This test relies on OPFS which isn't available in Playwright's flavor of ${browserName}.`
+		);
+
+		// `random` is intentionally ignored by autosave fingerprints. `name`
+		// is a setup param, so it isolates this test's autosave without
+		// changing the default WordPress boot.
+		const setupUrl = `./?name=restore-nudge-${Date.now()}`;
+		await website.goto(setupUrl);
+		await website.page.waitForFunction(() => {
+			const api = (window as any).playgroundSites;
+			const activeSite = api?.list().find((site: any) => site.isActive);
+			return (
+				activeSite?.storage === 'opfs' &&
+				activeSite?.persistence === 'autosave'
+			);
+		});
+
+		await website.goto(setupUrl);
+		await expect(
+			website.page.getByText('Recent autosave available')
+		).toBeVisible();
+
+		// Regression: saving the temporary Playground before answering the
+		// restore nudge must not be undone when the nudge is dismissed.
+		await website.page.getByRole('button', { name: 'Unsaved' }).click();
+		await website.page
+			.getByRole('button', { name: 'Store permanently' })
+			.click();
+
+		const saveDialog = website.page.getByRole('dialog', {
+			name: 'Save Playground',
+		});
+		await expect(saveDialog).toBeVisible();
+		await saveDialog.getByRole('button', { name: 'Save' }).click();
+		await expect(saveDialog).not.toBeVisible({ timeout: 120000 });
+		await website.page.waitForFunction(() => {
+			const api = (window as any).playgroundSites;
+			const activeSite = api?.list().find((site: any) => site.isActive);
+			return (
+				activeSite?.storage === 'opfs' &&
+				activeSite?.persistence === 'explicit'
+			);
+		});
+
+		const keepNewButton = website.page.getByRole('button', {
+			name: 'No, thanks',
+		});
+		// Saving may route directly to the saved Playground and clear the
+		// nudge. If it stays visible, dismissing it must not undo the save.
+		if (await keepNewButton.isVisible()) {
+			await keepNewButton.click();
+		}
+		await expect(
+			website.page.getByText('Recent autosave available')
+		).toHaveCount(0);
+		await expect(website.page.getByText('Saved Playground')).toBeVisible();
+		await website.page.waitForFunction(() => {
+			const api = (window as any).playgroundSites;
+			const activeSite = api?.list().find((site: any) => site.isActive);
+			return activeSite?.persistence === 'explicit';
+		});
 	});
 });
 
