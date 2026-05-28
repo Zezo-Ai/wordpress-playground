@@ -380,6 +380,40 @@ test('should copy blueprint link to clipboard when share button is clicked', asy
 	expect(decodedBlueprint).toHaveProperty('landingPage');
 });
 
+test('should make every Site Manager tab reachable on mobile', async ({
+	website,
+}) => {
+	await website.page.setViewportSize({ width: 390, height: 844 });
+	await website.goto('./');
+	await website.ensureSiteManagerIsOpen();
+
+	const siteManager = website.page.locator(
+		'section[class*="site-info-panel"]'
+	);
+	await expect(siteManager).toBeVisible();
+
+	const tabList = siteManager.locator('.components-tab-panel__tabs');
+	await expect(tabList).toBeVisible();
+
+	const logsTab = siteManager.getByRole('tab', { name: 'Logs' });
+	await expect(logsTab).toHaveCount(1);
+
+	await tabList.evaluate((element) => {
+		const logsTab = Array.from(
+			element.querySelectorAll<HTMLElement>('[role="tab"]')
+		).find((tab) => tab.textContent?.trim() === 'Logs');
+		if (!logsTab) {
+			throw new Error('Logs tab not found');
+		}
+
+		logsTab.scrollIntoView({ block: 'nearest', inline: 'end' });
+	});
+
+	await expect(logsTab).toBeInViewport();
+	await logsTab.click();
+	await expect(logsTab).toHaveAttribute('aria-selected', 'true');
+});
+
 test.describe('Database panel', () => {
 	test.beforeEach(async ({ website }) => {
 		await website.goto('./');
