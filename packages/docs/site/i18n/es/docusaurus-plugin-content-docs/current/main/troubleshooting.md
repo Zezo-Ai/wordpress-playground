@@ -289,19 +289,22 @@ de mayor duración, prefiere [Playground CLI](/developers/local-development/wp-p
 que persiste los archivos del sitio en disco.
 
 <!--
-:::tip
+<div class="callout callout-tip">
+
 The refresh button inside the Playground toolbar reloads WordPress while keeping
 the current Playground runtime. The browser refresh button reloads the full app
 and can discard unsaved changes.
-:::
+</div>
 -->
 
-:::tip
+<div class="callout callout-tip">
+
 El botón de recarga dentro de la barra de herramientas de Playground recarga
 WordPress mientras mantiene el runtime actual de Playground. El botón de
 actualizar del navegador recarga toda la aplicación y puede descartar cambios
 no guardados.
-:::
+
+</div>
 
 <!-- ## When to start fresh -->
 

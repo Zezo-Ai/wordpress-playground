@@ -140,11 +140,13 @@ Use the **Save** button before doing meaningful work. For longer-running local
 development, prefer the [Playground CLI](/developers/local-development/wp-playground-cli),
 which persists site files on disk.
 
-:::tip
+<div class="callout callout-tip">
+
 The refresh button inside the Playground toolbar reloads WordPress while keeping
 the current Playground runtime. The browser refresh button reloads the full app
 and can discard unsaved changes.
-:::
+
+</div>
 
 ## When to start fresh
 

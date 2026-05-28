@@ -292,19 +292,22 @@ développement local plus long, préférez
 les fichiers du site sur le disque.
 
 <!--
-:::tip
+<div class="callout callout-tip">
+
 The refresh button inside the Playground toolbar reloads WordPress while keeping
 the current Playground runtime. The browser refresh button reloads the full app
 and can discard unsaved changes.
-:::
+</div>
 -->
 
-:::tip
+<div class="callout callout-tip">
+
 Le bouton de rechargement dans la barre d’outils de Playground recharge
 WordPress tout en conservant l’environnement d’exécution actuel de Playground.
 Le bouton d’actualisation du navigateur recharge toute l’application et peut
 perdre les modifications non enregistrées.
-:::
+
+</div>
 
 <!-- ## When to start fresh -->
 

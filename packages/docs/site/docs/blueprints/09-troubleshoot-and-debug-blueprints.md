@@ -424,12 +424,14 @@ npx @wp-playground/cli server --mount-before-install=wordpress:/wordpress --blue
 Use the in-browser [Blueprints editor](https://playground.wordpress.net/builder/builder.html)
 to build, validate, and preview Blueprints.
 
-:::danger Caution
+<div class="callout callout-warning">
+
+**Caution**
 
 The editor is under development and the embedded Playground sometimes fails to
 load. To get around it, refresh the page.
 
-:::
+</div>
 
 ### Filesystem and database inspection
 
@@ -458,12 +460,14 @@ Open browser developer tools to check JavaScript errors, PHP debug logs, and
 failed network requests. In Chrome, Firefox, and Edge, press
 `Ctrl + Shift + I` on Windows/Linux or `Cmd + Option + I` on macOS.
 
-:::caution Safari
+<div class="callout callout-warning">
+
+**Safari**
 
 If you have not enabled the Develop menu, go to **Safari > Settings... >
 Advanced** and check **Show features for web developers**.
 
-:::
+</div>
 
 ### Custom error logging
 
@@ -473,11 +477,13 @@ You can write your own messages with `error_log()` in a
 
 ![Log errors snapshot](https://raw.githubusercontent.com/WordPress/wordpress-playground/refs/heads/trunk/packages/docs/site/static/img/blueprints/log-errors.webp)
 
-:::info
+<div class="callout callout-info">
+
 When you download your Playground instance as a ZIP through the
 ["Download as zip"](/web-instance) option, the archive
 also includes `debug.log`.
-:::
+
+</div>
 
 ## Ask for help
 

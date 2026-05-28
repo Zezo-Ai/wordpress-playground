@@ -800,7 +800,9 @@ no navegador para criar, validar e pré-visualizar Blueprints.
 
 <!-- :::danger Caution -->
 
-:::danger Atenção
+<div class="callout callout-warning">
+
+**Atenção**
 
 <!--
 The editor is under development and the embedded Playground sometimes fails to
@@ -810,7 +812,7 @@ load. To get around it, refresh the page.
 O editor está em desenvolvimento e o Playground incorporado às vezes falha ao
 carregar. Para contornar isso, atualize a página.
 
-:::
+</div>
 
 <!-- ### Filesystem and database inspection -->
 
@@ -872,7 +874,9 @@ Firefox e Edge, pressione `Ctrl + Shift + I` no Windows/Linux ou
 
 <!-- :::caution Safari -->
 
-:::caution Safari
+<div class="callout callout-warning">
+
+**Safari**
 
 <!--
 If you have not enabled the Develop menu, go to **Safari > Settings... >
@@ -882,7 +886,7 @@ Advanced** and check **Show features for web developers**.
 Se você ainda não ativou o menu Develop, acesse **Safari > Settings... >
 Advanced** e marque **Show features for web developers**.
 
-:::
+</div>
 
 <!-- ### Custom error logging -->
 
@@ -903,17 +907,20 @@ ou o console do navegador.
 ![Captura de logs de erro](https://raw.githubusercontent.com/WordPress/wordpress-playground/refs/heads/trunk/packages/docs/site/static/img/blueprints/log-errors.webp)
 
 <!--
-:::info
+<div class="callout callout-info">
+
 When you download your Playground instance as a ZIP through the
 ["Download as zip"](/web-instance) option, the archive
 also includes `debug.log`.
-:::
+</div>
 -->
 
-:::info
+<div class="callout callout-info">
+
 Ao baixar sua instância do Playground como ZIP pela opção
 ["Download as zip"](/web-instance), o arquivo também inclui `debug.log`.
-:::
+
+</div>
 
 <!-- ## Ask for help -->
 

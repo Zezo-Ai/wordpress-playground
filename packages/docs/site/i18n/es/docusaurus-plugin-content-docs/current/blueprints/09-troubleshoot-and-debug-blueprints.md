@@ -741,7 +741,7 @@ Correcciones comunes:
 
 <!-- ## WP-CLI: Error establishing a database connection on mounted sites -->
 
-## WP-CLI: Error establishing a database connection en sitios montados {#wp-cli-error-establishing-a-database-connection-on-mounted-sites}
+## WP-CLI: Error establishing a database connection en sitios montados
 
 <!--
 When using `wp-cli` with a mounted Playground site, for example via
@@ -804,7 +804,9 @@ en el navegador para crear, validar y previsualizar Blueprints.
 
 <!-- :::danger Caution -->
 
-:::danger Precaución
+<div class="callout callout-warning">
+
+**Precaución**
 
 <!--
 The editor is under development and the embedded Playground sometimes fails to
@@ -814,7 +816,7 @@ load. To get around it, refresh the page.
 El editor está en desarrollo y el Playground incrustado a veces falla al
 cargar. Para evitarlo, actualiza la página.
 
-:::
+</div>
 
 <!-- ### Filesystem and database inspection -->
 
@@ -876,7 +878,9 @@ Firefox y Edge, presiona `Ctrl + Shift + I` en Windows/Linux o
 
 <!-- :::caution Safari -->
 
-:::caution Safari
+<div class="callout callout-warning">
+
+**Safari**
 
 <!--
 If you have not enabled the Develop menu, go to **Safari > Settings... >
@@ -886,7 +890,7 @@ Advanced** and check **Show features for web developers**.
 Si no has activado el menú Develop, ve a **Safari > Settings... > Advanced** y
 marca **Show features for web developers**.
 
-:::
+</div>
 
 <!-- ### Custom error logging -->
 
@@ -907,17 +911,20 @@ la consola del navegador.
 ![Captura de errores de log](https://raw.githubusercontent.com/WordPress/wordpress-playground/refs/heads/trunk/packages/docs/site/static/img/blueprints/log-errors.webp)
 
 <!--
-:::info
+<div class="callout callout-info">
+
 When you download your Playground instance as a ZIP through the
 ["Download as zip"](/web-instance) option, the archive
 also includes `debug.log`.
-:::
+</div>
 -->
 
-:::info
+<div class="callout callout-info">
+
 Cuando descargas tu instancia de Playground como ZIP mediante la opción
 ["Download as zip"](/web-instance), el archivo también incluye `debug.log`.
-:::
+
+</div>
 
 <!-- ## Ask for help -->
 

@@ -32,7 +32,8 @@ For example, to create a Playground with specific versions of WordPress and PHP 
 And then you would go to
 `https://playground.wordpress.net/#{"preferredVersions":{"php":"8.3","wp":"6.5"}}`.
 
-:::tip
+<div class="callout callout-tip">
+
 In Javascript, you can get a compact version of any blueprint JSON with [`JSON.stringify`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify) and [`JSON.parse`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse)
 Example:
 
@@ -49,7 +50,7 @@ const encodedBlueprint = encodeURIComponent(minifiedBlueprintJson);
 const playgroundUrl = `https://playground.wordpress.net/#${encodedBlueprint}`;
 ```
 
-:::
+</div>
 
 You won't have to paste links to follow along. We'll use code examples with a "Try it out" button that will automatically run the examples for you:
 
@@ -96,7 +97,8 @@ const playgroundUrl = `https://playground.wordpress.net/#${encodeURIComponent(JS
 
 If another tool changes URL fragments, use a Base64-encoded Blueprint instead.
 
-:::tip
+<div class="callout callout-tip">
+
 In JavaScript, You can get any blueprint JSON in [Base64 format](https://developer.mozilla.org/en-US/docs/Glossary/Base64#javascript_support) with global function `btoa()`.
 
 Example:
@@ -112,7 +114,7 @@ const blueprintJson = `{
 const minifiedBlueprintJson = btoa(blueprintJson); // eyIkc2NoZW1hIjogImh0dHBzOi8vcGxheWdyb3VuZC53b3JkcHJlc3MubmV0L2JsdWVwcmludC1zY2hlbWEuanNvbiIsInByZWZlcnJlZFZlcnNpb25zIjogeyJwaHAiOiAiNy40Iiwid3AiOiAiNi41In19
 ```
 
-:::
+</div>
 
 ### Load Blueprint from a URL
 

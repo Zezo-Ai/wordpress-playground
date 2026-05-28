@@ -8,9 +8,11 @@ The Sites API is a JavaScript API exposed by [playground.wordpress.net](https://
 
 The API is reached via the `window.playgroundSites` global. Note that `window.playgroundSites` is not assigned during initial page load — wait for it to appear, then call [`isReady()`](#isready) before making any API calls.
 
-:::info
+<div class="callout callout-info">
+
 The Sites API ships with the Playground website application, not with the `@wp-playground/client` library. It is exposed on the top-level page (`/`), not on `/remote.html`. If you embed Playground via `startPlaygroundWeb` into your own page, your iframe won't expose `window.playgroundSites` to the parent — use the [JavaScript API](/developers/apis/javascript-api/) for direct control instead.
-:::
+
+</div>
 
 ## Quick start
 
