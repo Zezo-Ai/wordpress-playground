@@ -14,7 +14,9 @@ const failures = [];
 // with the resolved direct dependency `ws@8.21.0`; npm 11 rejected that
 // because the root override still used the non-identical `^8.21.0` range.
 // @see https://github.com/WordPress/wordpress-playground/pull/3745
-for (const packageDir of getWorkspacePackageDirs(rootPackageJson.workspaces ?? [])) {
+for (const packageDir of getWorkspacePackageDirs(
+	rootPackageJson.workspaces ?? []
+)) {
 	const packageJsonPath = `${packageDir}/package.json`;
 	if (!fs.existsSync(packageJsonPath)) {
 		continue;
@@ -34,7 +36,10 @@ for (const packageDir of getWorkspacePackageDirs(rootPackageJson.workspaces ?? [
 				continue;
 			}
 
-			const resolvedVersion = getResolvedVersion(packageDir, dependencyName);
+			const resolvedVersion = getResolvedVersion(
+				packageDir,
+				dependencyName
+			);
 			if (!resolvedVersion) {
 				failures.push(
 					`${packageJson.name} declares ${dependencyName}, but ` +
@@ -43,7 +48,10 @@ for (const packageDir of getWorkspacePackageDirs(rootPackageJson.workspaces ?? [
 				continue;
 			}
 
-			if (dependencySpec !== resolvedVersion || overrideSpec !== resolvedVersion) {
+			if (
+				dependencySpec !== resolvedVersion ||
+				overrideSpec !== resolvedVersion
+			) {
 				failures.push(
 					`${packageJson.name} declares ${dependencyName}@${dependencySpec} ` +
 						`and the root override is ${dependencyName}@${overrideSpec}, ` +

@@ -200,11 +200,16 @@ class OpfsSiteStorage {
 		const siteDirectory = await this.root.getDirectoryHandle(siteDirName);
 		const namesToDelete: string[] = [];
 		for await (const [name] of siteDirectory.entries()) {
+			// Recreating an autosaved Playground rebuilds WordPress in the same
+			// OPFS site directory. Keep the metadata and editable Blueprint
+			// bundle so the autosave keeps its slug and setup recipe.
 			if (name === SITE_METADATA_FILENAME || name === BUNDLE_DIR_NAME) {
 				continue;
 			}
 			namesToDelete.push(name);
 		}
+		// Collect names before deleting. Some File System Access implementations
+		// are brittle when a directory is mutated while its iterator is active.
 		for (const name of namesToDelete) {
 			await siteDirectory.removeEntry(name, { recursive: true });
 		}
@@ -255,10 +260,11 @@ async function metadataToStoredFormat(
 			originalBlueprintSource,
 			/**
 			 * Site metadata stores Blueprint declaration JSON, not arbitrary
-			 * bundle files. When the Blueprint source is `opfs-site`, the
-			 * bundle files already live beside the site's WordPress files, so
-			 * metadata points at that OPFS bundle directory instead of
-			 * duplicating the declaration here.
+			 * bundle files. When the source is not `opfs-site`, saving records
+			 * `blueprint.json` only; bundled resource files are not copied into
+			 * the metadata file. Autosaved Playgrounds persist editable bundle
+			 * files beside WordPress files, so metadata points at that OPFS
+			 * bundle directory instead of duplicating the declaration here.
 			 */
 			originalBlueprint:
 				originalBlueprintSource?.type === 'opfs-site'

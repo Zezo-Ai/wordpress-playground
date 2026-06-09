@@ -15,6 +15,7 @@ import {
 	InvalidBlueprintError,
 	BlueprintFetchError,
 } from '@wp-playground/blueprints';
+import type { WritableFilesystemBackend } from '@wp-playground/storage';
 import {
 	type BlueprintSource,
 	resolveBlueprintFromURL,
@@ -756,7 +757,7 @@ export interface SiteMetadata {
 
 	// @TODO: Accept any string as a php version?
 	runtimeConfiguration: RuntimeConfiguration;
-	originalBlueprint: BlueprintV1;
+	originalBlueprint: BlueprintV1 | WritableFilesystemBackend;
 	originalBlueprintSource: BlueprintSource;
 }
 
