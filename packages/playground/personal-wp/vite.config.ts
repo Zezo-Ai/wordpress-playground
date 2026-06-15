@@ -190,6 +190,30 @@ export default defineConfig(({ command, mode }) => {
 			},
 		],
 
+		worker: {
+			format: 'es',
+			plugins: () => [
+				viteTsConfigPaths({
+					root: '../../../',
+				}),
+				viteIgnoreImports({
+					extensions: ['wasm', 'so', 'dat'],
+				}),
+				...viteGlobalExtensions,
+				buildVersionPlugin('remote-config'),
+			],
+			rollupOptions: {
+				output: {
+					entryFileNames: (chunkInfo: any) => {
+						if (chunkInfo.name === 'service-worker') {
+							return 'sw.js';
+						}
+						return '[name]-[hash].js';
+					},
+				},
+			},
+		},
+
 		build: {
 			target: 'esnext',
 			sourcemap: true,
